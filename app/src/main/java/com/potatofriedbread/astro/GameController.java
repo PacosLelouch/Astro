@@ -1,6 +1,7 @@
 package com.potatofriedbread.astro;
 
 import android.os.Handler;
+import android.preference.PreferenceManager;
 import android.view.View;
 
 public class GameController {
@@ -35,8 +36,9 @@ public class GameController {
             rollNum = 0;
             gameHandler = new GameHandler();
             //TODO resources
-            //TODO load chess
+            //TODO load ches
             chessList = new Chess[][]{red, yellow, blue, green};
+            initChessPosAll();
             System.out.println("Initialization complete.");
         } catch (Exception e){
             e.printStackTrace();
@@ -107,12 +109,7 @@ public class GameController {
 
     private boolean restartGame(){
         try{
-            initChessPos();
-            for(int i = 0; i < chessList.length; ++i){
-                for(int j = 0; j < chessList[j].length; ++j){
-                    chessList[i][j].reset();
-                }
-            }
+            initChessPosAll();
             System.out.println("Reset chess.");
             configHelper.reset();
             System.out.println("Reset helper.");
@@ -128,8 +125,17 @@ public class GameController {
         return true;
     }
 
-    private void initChessPos(){
-        //TODO
+    private void initChessPosAll(){
+        for(int i = 0; i < chessList.length; ++i){
+            for(int j = 0; j < chessList[i].length; ++j){
+                initChessPos(chessList[i][j]);
+            }
+        }
+    }
+
+    private void initChessPos(Chess chess){
+        chess.reset();
+        //TODO: put chess at start point. Using chess.getPlayer() and chess.getChessNum().
     }
 
     private void resetRoll(){
@@ -155,28 +161,37 @@ public class GameController {
 
     private void go(Chess chess){
         if(rollNum != 0){
-            if(Value.TAKE_OFF_NUM.contains(rollNum)){
-                if(chess == null){
-                    System.out.println("You didn't select any chess.");
-                } else if(!chess.isFlying() && !chess.isCompleted()){
-                    chess.takeOff();
-                    gameHandler.postFlyAudio();
-                    System.out.println("Take off.");
-                } else{
+            boolean combo = false;
+            do {
+                if (Value.TAKE_OFF_NUM.contains(rollNum)) {
+                    if (chess == null) {
+                        System.out.println("You didn't select any chess.");
+                    } else if (!chess.isFlying() && !chess.isCompleted()) {
+                        //TODO: animation
+                        chess.takeOff();
+                        gameHandler.postFlyAudio();
+                        System.out.println("Take off.");
+                    } else {
+                        //TODO: animation
+                        chess.move(rollNum);
+                        gameHandler.postFlyAudio();
+                        System.out.println("RollNum = " + rollNum + ", moving complete.");
+                        chessStatusJudge(chess);
+                    }
+                } else {
+                    //TODO: animation
                     chess.move(rollNum);
                     gameHandler.postFlyAudio();
                     System.out.println("RollNum = " + rollNum + ", moving complete.");
                     chessStatusJudge(chess);
                 }
-            } else{
-                chess.move(rollNum);
-                gameHandler.postFlyAudio();
-                System.out.println("RollNum = " + rollNum + ", moving complete.");
-                chessStatusJudge(chess);
-            }
-            if(Value.COMBO_NUM.contains(rollNum)){
-                //TODO combo
-            }
+                if(Value.COMBO_NUM.contains(rollNum)){
+                    combo = true;
+                    System.out.println("Another chance.");
+                    //TODO: animation
+                    roll();
+                }
+            } while(combo);
         } else{
             System.out.println("Please roll first.");
         }
@@ -184,15 +199,96 @@ public class GameController {
     }
 
     private void chessStatusJudge(Chess chess){
-        //TODO
+        int pos = chess.getNowPos();
+        killJudge(chess);
+        if(pos == Value.TERMINAL){
+            chess.completeTour();
+            initChessPos(chess);
+            //TODO: setCompleteArrow
+            gameOverJudge();
+        } else if(Value.FLY_POINT == pos){
+            //TODO: animation
+            chessFly(chess);
+            chessJump(chess); // 好像有版本飞完再跳或者跳完再飞的
+        } else if((pos - 2) % 4 == 0){
+            //TODO: animation
+            chessJump(chess);
+            if(Value.FLY_POINT == pos){
+                chessFly(chess); // 好像有版本飞完再跳或者跳完再飞的
+            }
+        }
+    }
+
+    private void chessFly(Chess chess){
+        chess.move(12);
+        System.out.println("fly");
+        int target;
+        switch(chess.getPlayer()){
+            case Value.RED:
+                target = Value.BLUE;
+                break;
+            case Value.YELLOW:
+                target = Value.GREEN;
+                break;
+            case Value.BLUE:
+                target = Value.RED;
+                break;
+            case Value.GREEN:
+                target = Value.YELLOW;
+                break;
+            default:
+                target = -1;
+        }
+        for(int i = 0; i < 4; ++i){ // 这个版本大跳跃还能撞上终点前的飞机吗
+            Chess targetChess = chessList[target][i];
+            if(targetChess.getNowPos() == Value.CONFLICT){
+                targetChess.killed();
+                initChessPos(targetChess);
+            }
+        }
+    }
+
+    private void chessJump(Chess chess){
+        System.out.println("jump");
+        chess.move(4);
+        killJudge(chess);
     }
 
     private void gameOverJudge(){
-        //TODO
+        boolean flag = true;
+        for(int i = 0; i < 4; ++i){
+            Chess chess = chessList[whoseTurn][i];
+            if(!chess.isCompleted()){
+                flag = false;
+                break;
+            }
+        }
+        if(flag){
+            System.out.println(Value.PLAYER_COLOR[whoseTurn] + " wins the game.");
+            //TextView
+            try{
+                Thread.sleep(3000);
+                restartGame();
+            } catch(Exception e){
+                e.printStackTrace();
+            }
+        }
     }
 
     private void killJudge(Chess chess){
-        //TODO
+        for(int i = 0; i < chessList.length; ++i){
+            if(i == chess.getPlayer()){
+                continue;
+            }
+            for(int j = 0; j < chessList[i].length; ++j){
+                Chess targetChess = chessList[i][j];
+                if(chess.getX() == targetChess.getX() && chess.getY() == targetChess.getY()){
+                    System.out.println("A chess of player " + Value.PLAYER_COLOR[targetChess.getPlayer()] + " is killed.");
+                    targetChess.killed();
+                    initChessPos(targetChess);
+                }
+            }
+        }
     }
 
     private Chess viewToChess(int player, View v){
