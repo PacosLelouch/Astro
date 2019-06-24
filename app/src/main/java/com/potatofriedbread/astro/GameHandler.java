@@ -2,7 +2,7 @@ package com.potatofriedbread.astro;
 
 import android.os.Handler;
 import android.os.Message;
-
+//TODO: 想拆开成多几个Handler，明天再说吧
 public class GameHandler extends Handler {
 
     Thread AIDelay, hostRecMsg, clientRecMsg, hostSendMsg, clientSendMsg, flyAudio;

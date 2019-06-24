@@ -4,9 +4,11 @@ import android.os.Handler;
 import android.preference.PreferenceManager;
 import android.view.View;
 
+//TODO: Handler的POST的方法都换成message好了，然后拆几个Handler，方便异步。
+//TODO: 有关state的使用还没加进去。
 public class GameController {
 
-    private int completeArrowUsed, whoseTurn, rollNum;
+    private int completeArrowUsed, whoseTurn, rollNum, state;
     private ConfigHelper configHelper;
     private GameHandler gameHandler;
     private Chess[] red, yellow, blue, green;
@@ -32,6 +34,7 @@ public class GameController {
     public void initGame() throws Exception{
         try{
             completeArrowUsed = 0;
+            state = Value.STATE_ROLL;
             whoseTurn = (int)(Math.random() * 4);
             rollNum = 0;
             gameHandler = new GameHandler();
@@ -210,7 +213,7 @@ public class GameController {
             //TODO: animation
             chessFly(chess);
             chessJump(chess); // 好像有版本飞完再跳或者跳完再飞的
-        } else if((pos - 2) % 4 == 0){
+        } else if(Value.JUMP_POINT.contains(pos)){
             //TODO: animation
             chessJump(chess);
             if(Value.FLY_POINT == pos){

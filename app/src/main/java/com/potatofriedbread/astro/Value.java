@@ -17,14 +17,18 @@ public class Value {
     static final int ONLINE = 0;
     static final int LOCAL = 1;
 
+    static final int STATE_ROLL = 0;
+    static final int STATE_MOVE_CHESS = 1;
+    static final int STATE_CANNOT_MOVE = 2;
+
     static final int AI_TYPE[] = new int[]{0, 1, 2, 3};
 
     static final int TERMINAL = 56;
-    static final int CONFLICT = 53;
-    static final int[] JUMP_POINT = new int[]{2, 6, 10, 14, /*18,*/ 22, 26, 30, 34, 38, 42, 46, 50};
+    static final int CONFLICT = 53; // 这个版本大跳跃还能撞上终点前的飞机吗
     static final int FLY_POINT = 18;
-    static final ArrayList<Integer> TAKE_OFF_NUM = (ArrayList)Arrays.asList(6);
-    static final ArrayList<Integer> COMBO_NUM = (ArrayList)Arrays.asList(6);
+    static final ArrayList<Integer> JUMP_POINT = (ArrayList<Integer>)Arrays.asList(2, 6, 10, 14, /*18,*/ 22, 26, 30, 34, 38, 42, 46, 50);
+    static final ArrayList<Integer> TAKE_OFF_NUM = (ArrayList<Integer>)Arrays.asList(6);
+    static final ArrayList<Integer> COMBO_NUM = (ArrayList<Integer>)Arrays.asList(6);
 
     static final String[] PLAYER_COLOR = new String[]{"Red", "Yellow", "Blue", "Green"};
 
