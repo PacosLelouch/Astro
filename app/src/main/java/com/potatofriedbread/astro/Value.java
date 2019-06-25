@@ -14,8 +14,9 @@ public class Value {
     static final int LOCAL_HUMAN = 2;
     static final int REPLAY = 3;
 
-    static final int ONLINE = 0;
-    static final int LOCAL = 1;
+    static final int ONLINE_LAN = 0;
+    static final int ONLINE_SERVER = 1;
+    static final int LOCAL = 2;
 
     static final int STATE_ROLL = 0;
     static final int STATE_MOVE_CHESS = 1;

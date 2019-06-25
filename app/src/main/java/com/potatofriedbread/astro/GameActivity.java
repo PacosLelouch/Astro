@@ -12,6 +12,8 @@ import android.view.MenuItem;
 
 public class GameActivity extends AppCompatActivity {
 
+    public GameController gameController;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -20,7 +22,7 @@ public class GameActivity extends AppCompatActivity {
         setSupportActionBar(toolbar);
         ActionBar actionBar = getSupportActionBar();
         actionBar.setDisplayHomeAsUpEnabled(true);
-
+        //其实这个FloatingActionButton是不是可以不要了
         FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -30,6 +32,8 @@ public class GameActivity extends AppCompatActivity {
             }
         });
 
+        gameController = GameController.getInstance();
+        gameController.setGameActivity(this);
     }
 
     @Override
@@ -48,6 +52,7 @@ public class GameActivity extends AppCompatActivity {
         //noinspection SimplifiableIfStatement
         switch(item.getItemId()){
             case android.R.id.home:
+                //也许还能把玩家自动设为托管
                 finish();
             case R.id.action_settings:
                 return true;

@@ -2,14 +2,18 @@ package com.potatofriedbread.astro;
 
 public class ConfigHelper {
     private int localHumanNum, onlineHumanNum, AINum;
-    private int gameType, hostColor;
+    private int gameType, hostPlayer;
     private int playerType[] = new int[4];
     private boolean host;
 
-    public ConfigHelper(int gameType, int hostColor){
+    public ConfigHelper(int gameType, int hostPlayer){
         this.gameType = gameType;
-        this.hostColor = hostColor;
-        host = true;
+        this.hostPlayer = hostPlayer;
+        if(gameType == Value.ONLINE_LAN){
+            host = true;
+        } else{
+            host = false;
+        }
         reset();
     }
 
@@ -52,8 +56,12 @@ public class ConfigHelper {
         return playerType[player];
     }
 
+    public int getHostPlayer(){
+        return hostPlayer;
+    }
+
     public void reset(){
-        if(gameType == Value.ONLINE){
+        if(gameType == Value.ONLINE_LAN){
             localHumanNum =  1;
             onlineHumanNum = 3;
             AINum = 0;
@@ -61,7 +69,7 @@ public class ConfigHelper {
             playerType[Value.YELLOW] = Value.ONLINE_HUMAN;
             playerType[Value.BLUE] = Value.ONLINE_HUMAN;
             playerType[Value.GREEN] = Value.ONLINE_HUMAN;
-            playerType[hostColor] = Value.LOCAL_HUMAN;
+            playerType[hostPlayer] = Value.LOCAL_HUMAN;
         } else if(gameType == Value.LOCAL){
             localHumanNum = 1;
             onlineHumanNum = 0;
@@ -70,7 +78,15 @@ public class ConfigHelper {
             playerType[Value.YELLOW] = Value.AI;
             playerType[Value.BLUE] = Value.AI;
             playerType[Value.GREEN] = Value.AI;
-            playerType[hostColor] = Value.LOCAL_HUMAN;
+            playerType[hostPlayer] = Value.LOCAL_HUMAN;
+        } else if(gameType == Value.ONLINE_SERVER){
+            localHumanNum =  1;
+            onlineHumanNum = 3;
+            AINum = 0;
+            playerType[Value.RED] = Value.ONLINE_HUMAN;
+            playerType[Value.YELLOW] = Value.ONLINE_HUMAN;
+            playerType[Value.BLUE] = Value.ONLINE_HUMAN;
+            playerType[Value.GREEN] = Value.ONLINE_HUMAN;
         }
     }
 }
