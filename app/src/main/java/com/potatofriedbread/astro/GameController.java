@@ -1,13 +1,17 @@
 package com.potatofriedbread.astro;
 
+import android.util.Log;
 import android.view.View;
+import android.view.ViewGroup;
+import android.widget.ImageView;
+import android.widget.RelativeLayout;
 
 //TODO: Handler的POST的方法都换成message好了，然后拆几个Handler，方便异步。
 //TODO: 有关state的使用还没加进去。
 public class GameController {
 
     private GameActivity gameActivity;
-    private int whoseTurn, rollNum, state, animationLeft/*, completeArrowUsed*/;
+    private int whoseTurn, rollNum, state, animationLeft, loadLeft/*, completeArrowUsed*/;
     private ConfigHelper configHelper;
     private ControlHandler controlHandler;
     private LANHandler lanHandler;
@@ -33,24 +37,113 @@ public class GameController {
     public void initGame() throws Exception{
         try{
             //completeArrowUsed = 0;
-            state = Value.STATE_ROLL;
+            state = Value.STATE_CANNOT_MOVE;
             animationLeft = 0;
-            whoseTurn = (int)(Math.random() * 4);
+            loadLeft = 0;
             rollNum = 0;
             controlHandler = new ControlHandler(this);
             audioHandler = new AudioHandler(this);
             lanHandler = new LANHandler(this);
             serverHandler = new ServerHandler(this);
             animationHandler = new AnimationHandler(this);
-            //TODO resources
-            //TODO load chess
-            chessList = new Chess[][]{red, yellow, blue, green};
+            loadResources();
+            //Do not load chess.
             initChessPosAll();
             System.out.println("Initialization complete.");
         } catch (Exception e){
             e.printStackTrace();
             System.out.println("Fail to initialize game.");
         }
+    }
+
+    public void loadResources(){
+        //TODO resources
+    }
+
+    public void loadChess(){
+        increaseLoadCount();
+        final ImageView[][] images = {{
+                gameActivity.findViewById(R.id.red0),
+                gameActivity.findViewById(R.id.red1),
+                gameActivity.findViewById(R.id.red2),
+                gameActivity.findViewById(R.id.red3)
+        },{
+                gameActivity.findViewById(R.id.yellow0),
+                gameActivity.findViewById(R.id.yellow1),
+                gameActivity.findViewById(R.id.yellow2),
+                gameActivity.findViewById(R.id.yellow3)
+        },{
+                gameActivity.findViewById(R.id.blue0),
+                gameActivity.findViewById(R.id.blue1),
+                gameActivity.findViewById(R.id.blue2),
+                gameActivity.findViewById(R.id.blue3)
+        },{
+                gameActivity.findViewById(R.id.green0),
+                gameActivity.findViewById(R.id.green1),
+                gameActivity.findViewById(R.id.green2),
+                gameActivity.findViewById(R.id.green3)
+        }};
+
+        for(int i = 0; i < images.length; ++i){
+            for(int j = 0; j < images[i].length; ++j){
+                final ImageView image = images[i][j];
+                final int startY = Value.STARTS_Y[i][j];
+                final int startX = Value.STARTS_X[i][j];
+                final int player = i;
+                image.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        RelativeLayout.LayoutParams layoutParams = new RelativeLayout.LayoutParams(image.getLayoutParams());
+                        layoutParams.height = (int)Coordinate.getInstance().getChessWidth();
+                        layoutParams.width = (int)Coordinate.getInstance().getChessWidth();/*
+                        layoutParams.topMargin = Coordinate.getInstance().mapToScreenY(startY);
+                        layoutParams.leftMargin = Coordinate.getInstance().mapToScreenX(startX);*/
+                        image.setLayoutParams(layoutParams);
+                        image.setTranslationY(Coordinate.getInstance().mapToScreenY(startY));
+                        image.setTranslationX(Coordinate.getInstance().mapToScreenX(startX));
+                        /*Log.d("TEST", "chess: " + image.getX() + " " + image.getY() + " " +
+                                image.getWidth() + " " + image.getHeight());*/
+                        image.setOnClickListener(new View.OnClickListener() {
+                            @Override
+                            public void onClick(View view) {
+                                Chess chess = viewToChess(player, view);
+                                go(chess);
+                            }
+                        });
+                        decreaseLoadCount();
+                        if(noLoadingLeft()){
+                            gameActivity.gameStart();
+                        }
+                    }
+                });
+            }
+        }
+
+        red = new Chess[]{
+                new Chess(Value.RED, 0, images[Value.RED][0]),
+                new Chess(Value.RED, 1, images[Value.RED][1]),
+                new Chess(Value.RED, 2, images[Value.RED][2]),
+                new Chess(Value.RED, 3, images[Value.RED][3]),
+        };
+        yellow = new Chess[]{
+                new Chess(Value.YELLOW, 0, images[Value.YELLOW][0]),
+                new Chess(Value.YELLOW, 1, images[Value.YELLOW][1]),
+                new Chess(Value.YELLOW, 2, images[Value.YELLOW][2]),
+                new Chess(Value.YELLOW, 3, images[Value.YELLOW][3]),
+        };
+        blue = new Chess[]{
+                new Chess(Value.BLUE, 0, images[Value.BLUE][0]),
+                new Chess(Value.BLUE, 1, images[Value.BLUE][1]),
+                new Chess(Value.BLUE, 2, images[Value.BLUE][2]),
+                new Chess(Value.BLUE, 3, images[Value.BLUE][3]),
+        };
+        green = new Chess[]{
+                new Chess(Value.GREEN, 0, images[Value.GREEN][0]),
+                new Chess(Value.GREEN, 1, images[Value.GREEN][1]),
+                new Chess(Value.GREEN, 2, images[Value.GREEN][2]),
+                new Chess(Value.GREEN, 3, images[Value.GREEN][3]),
+        };
+        chessList = new Chess[][]{red, yellow, blue, green};
     }
 
     public void gameStart(int gameType, int player){
@@ -73,6 +166,7 @@ public class GameController {
             configHelper.changePlayerType(Value.GREEN, Value.ONLINE_HUMAN);
             configHelper.changePlayerType(player, Value.LOCAL_HUMAN);
         }
+        initWhoseTurn();
         System.out.println("Game start.");
         turnStart();
     }
@@ -133,7 +227,7 @@ public class GameController {
     public void roll(){
         rollNum = (int)(Math.random() * 6) + 1;
         setState(Value.STATE_CANNOT_MOVE);
-        animationHandler.postRollAnimation();
+        animationHandler.postRollAnimation(rollNum);
         //TextView's operation
         //TODO:下面的代码可能放animation的onAnimationEnd
     }
@@ -145,15 +239,36 @@ public class GameController {
             configHelper.reset();
             System.out.println("Reset helper.");
             //TODO complete arrow.
-            whoseTurn = (int)(Math.random() * chessList.length);
             rollNum = 0;
-            gameStart(configHelper.getGameType(), configHelper.getHostPlayer());
+            //gameStart(configHelper.getGameType(), configHelper.getHostPlayer());
         } catch(Exception e){
             e.printStackTrace();
             System.out.println("Fail to restart game.");
             return false;
         }
         return true;
+    }
+
+    public void initWhoseTurn(){
+        if(configHelper.getGameType() == Value.LOCAL) {
+            whoseTurn = Value.RED; // TODO: Just for test.
+            //whoseTurn = (int) (Math.random() * chessList.length);
+        } else if(configHelper.getGameType() == Value.ONLINE_LAN){
+            if(configHelper.isHost()){
+                whoseTurn = (int)(Math.random() * chessList.length);
+                lanHandler.postWhoseTurnLan(whoseTurn);
+            } else{
+                lanHandler.getWhoseTurnLAN();
+                //TODO
+            }
+        } else if(configHelper.getGameType() == Value.ONLINE_SERVER){
+            serverHandler.getWhostTurnServer();
+            //TODO
+        }
+    }
+
+    public void setWhoseTurn(int value){
+        whoseTurn = value;
     }
 
     public void initChessPosAll(){
@@ -167,6 +282,8 @@ public class GameController {
     public void initChessPos(Chess chess){
         chess.reset();
         //TODO: put chess at start point. Using chess.getPlayer() and chess.getChessNum().
+        chess.getImg().setTranslationY(Coordinate.getInstance().mapToScreenY(Value.STARTS_X[chess.getPlayer()][chess.getChessNum()]));
+        chess.getImg().setTranslationX(Coordinate.getInstance().mapToScreenX(Value.STARTS_Y[chess.getPlayer()][chess.getChessNum()]));
     }
 
     public void resetRoll(){
@@ -195,6 +312,14 @@ public class GameController {
     }
 
     public void go(Chess chess){
+        if(whoseTurn != chess.getPlayer()){
+            System.out.println("Not your turn.");
+            return;
+        }
+        if(state != Value.STATE_CANNOT_MOVE){
+            System.out.println("You cannot move now.");
+            return;
+        }
         if(rollNum != 0){
             if (Value.TAKE_OFF_NUM.contains(rollNum)) {
                 if (chess == null) {
@@ -330,11 +455,10 @@ public class GameController {
         }
     }
 
-    public Chess viewToChess(int player, View v){
+    public Chess viewToChess(int player, View view){
         for(int i = 0; i < chessList[player].length; ++i){
             Chess chess = chessList[player][i];
-            if(chess.getX() == (int)v.getX() * 2 / Chess.getChessWidth() &&
-                    chess.getY() == (int)(v.getY() - Chess.getTopLeftY()) * 2 / Chess.getChessWidth()){
+            if(Coordinate.getInstance().clickTheChess(chess, view)){
                 return chess;
             }
         }
@@ -378,6 +502,10 @@ public class GameController {
         return whoseTurn;
     }
 
+    public Chess[][] getChessList(){
+        return chessList;
+    }
+
     public void increaseAnimationCount(){
         animationLeft++;
     }
@@ -388,6 +516,18 @@ public class GameController {
 
     public boolean noAnimationLeft(){
         return animationLeft == 0;
+    }
+
+    public void increaseLoadCount(){
+        loadLeft++;
+    }
+
+    public void decreaseLoadCount(){
+        loadLeft--;
+    }
+
+    public boolean noLoadingLeft(){
+        return loadLeft == 0;
     }
 
     public void setGameActivity(GameActivity value){

@@ -11,6 +11,15 @@ public class LANHandler extends Handler {
         this.gameController = gameController;
     }
 
+    public void getOnlineRollLAN(){
+        super.post(new Runnable() {
+            @Override
+            public void run() {
+                //TODO
+            }
+        });
+    }
+
     public void postAIRollLAN(){
         super.post(new Runnable() {
             @Override
@@ -20,7 +29,7 @@ public class LANHandler extends Handler {
         });
     }
 
-    public void postOnlineRollLAN(){
+    public void getOnlineMoveLAN(){
         super.post(new Runnable() {
             @Override
             public void run() {
@@ -29,7 +38,16 @@ public class LANHandler extends Handler {
         });
     }
 
-    public void getOnlineRollLAN(){
+    public void postAIMoveLAN(final int rollNum){
+        super.post(new Runnable() {
+            @Override
+            public void run() {
+                //TODO
+            }
+        });
+    }
+
+    public void postHostMoveLAN(final Chess chess, final int rollNum){
         super.post(new Runnable() {
             @Override
             public void run() {
@@ -48,6 +66,24 @@ public class LANHandler extends Handler {
     }
 
     public void postClientTurnEndLAN(){
+        super.post(new Runnable() {
+            @Override
+            public void run() {
+                //TODO
+            }
+        });
+    }
+
+    public void postWhoseTurnLan(int whoseTurn){
+        super.post(new Runnable() {
+            @Override
+            public void run() {
+                //TODO
+            }
+        });
+    }
+
+    public void getWhoseTurnLAN(){
         super.post(new Runnable() {
             @Override
             public void run() {

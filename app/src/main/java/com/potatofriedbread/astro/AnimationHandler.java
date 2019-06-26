@@ -18,11 +18,12 @@ public class AnimationHandler extends Handler {
     }
 
     //骰子动画
-    public void postRollAnimation(){
+    public void postRollAnimation(final int rollNum){
         gameController.increaseAnimationCount();
         super.post(new Runnable() {
             @Override
             public void run() {
+                //TODO: Add attributes.
                 rollAnimator.addListener(new AnimatorListenerAdapter() {
                     @Override
                     public void onAnimationEnd(Animator animation) {
@@ -32,7 +33,7 @@ public class AnimationHandler extends Handler {
                         if(configHelper.getPlayerType(whoseTurn) == Value.LOCAL_HUMAN){
                             if(!gameController.canMove())gameController.turnEnd();
                             else{
-                                gameController.setState(Value.STATE_MOVE_CHESS);
+                                gameController.getControlHandler().changeStateToMove(rollNum);
                             }
                         }
                     }

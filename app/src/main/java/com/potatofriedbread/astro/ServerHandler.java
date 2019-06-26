@@ -27,7 +27,7 @@ public class ServerHandler extends Handler {
             }
         });
     }
-
+    /*
     public void getAIRollServer(){
         super.post(new Runnable() {
             @Override
@@ -35,7 +35,7 @@ public class ServerHandler extends Handler {
                 //TODO
             }
         });
-    }
+    }*/
 
     public void getOnlineRollServer(){
         super.post(new Runnable() {
@@ -46,7 +46,43 @@ public class ServerHandler extends Handler {
         });
     }
 
+    public void postOnlineRollServer(){
+        super.post(new Runnable() {
+            @Override
+            public void run() {
+                //TODO
+            }
+        });
+    }
+
+    public void getOnlineMoveServer(){
+        super.post(new Runnable() {
+            @Override
+            public void run() {
+                //TODO
+            }
+        });
+    }
+
+    public void postOnlineMoveServer(){
+        super.post(new Runnable() {
+            @Override
+            public void run() {
+                //TODO
+            }
+        });
+    }
+
     public void postOnlineTurnEndServer(){
+        super.post(new Runnable() {
+            @Override
+            public void run() {
+                //TODO
+            }
+        });
+    }
+
+    public void getWhostTurnServer(){
         super.post(new Runnable() {
             @Override
             public void run() {

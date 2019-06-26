@@ -1,6 +1,6 @@
 package com.potatofriedbread.astro;
 
-import java.util.ArrayList;
+import java.util.List;
 import java.util.Arrays;
 
 public class Value {
@@ -27,9 +27,9 @@ public class Value {
     static final int TERMINAL = 56;
     static final int CONFLICT = 53; // 这个版本大跳跃还能撞上终点前的飞机吗
     static final int FLY_POINT = 18;
-    static final ArrayList<Integer> JUMP_POINT = (ArrayList<Integer>)Arrays.asList(2, 6, 10, 14, /*18,*/ 22, 26, 30, 34, 38, 42, 46, 50);
-    static final ArrayList<Integer> TAKE_OFF_NUM = (ArrayList<Integer>)Arrays.asList(6);
-    static final ArrayList<Integer> COMBO_NUM = (ArrayList<Integer>)Arrays.asList(6);
+    static final List<Integer> JUMP_POINT = (List<Integer>)Arrays.asList(2, 6, 10, 14, /*18,*/ 22, 26, 30, 34, 38, 42, 46, 50);
+    static final List<Integer> TAKE_OFF_NUM = (List<Integer>)Arrays.asList(6);
+    static final List<Integer> COMBO_NUM = (List<Integer>)Arrays.asList(6);
 
     static final String[] PLAYER_COLOR = new String[]{"Red", "Yellow", "Blue", "Green"};
 
@@ -143,5 +143,46 @@ public class Value {
             YELLOW_PATH_Y,
             BLUE_PATH_Y,
             GREEN_PATH_Y
+    };
+
+    static final int[] RED_START_X = new int[]{
+            29, 31, 29, 31
+    };
+    static final int[] YELLOW_START_X = new int[]{
+            29, 31, 29, 31
+    };
+    static final int[] BLUE_START_X = new int[]{
+            3, 5, 3, 5
+    };
+    static final int[] GREEN_START_X = new int[]{
+            3, 5, 3, 5
+    };
+
+    static final int[] RED_START_Y = new int[]{
+            3, 3, 5, 5
+    };
+    static final int[] YELLOW_START_Y = new int[]{
+            29, 29, 31, 31
+    };
+    static final int[] BLUE_START_Y = new int[]{
+            29, 29, 31, 31
+    };
+    static final int[] GREEN_START_Y = new int[]{
+            3, 3, 5, 5
+    };
+
+
+    static final int[][] STARTS_X = new int[][]{
+            RED_START_X,
+            YELLOW_START_X,
+            BLUE_START_X,
+            GREEN_START_X
+    };
+
+    static final int[][] STARTS_Y = new int[][]{
+            RED_START_Y,
+            YELLOW_START_Y,
+            BLUE_START_Y,
+            GREEN_START_Y
     };
 }
