@@ -1,19 +1,18 @@
 package com.potatofriedbread.astro;
 
-import android.graphics.drawable.BitmapDrawable;
 import android.util.Log;
 import android.widget.ImageView;
 
 import java.io.Serializable;
 
 public class Chess implements Serializable {
-    private static final long serialVersionUID = 1L;
-    final int[][] imgSrc = {
+    private static final long serialVersionUID = 1L;/*
+    private static final int[][] imgSrc = {
             {R.drawable.red, R.drawable.red_light, R.drawable.complete},
             {R.drawable.yellow, R.drawable.yellow_light, R.drawable.complete},
             {R.drawable.blue, R.drawable.blue_light, R.drawable.complete},
             {R.drawable.green, R.drawable.green_light, R.drawable.complete},
-    };
+    };*/
     private boolean flying, completed;
     private int nowPos, player, chessNum;
     private ImageView img;
@@ -59,8 +58,7 @@ public class Chess implements Serializable {
     }
 
     public void changeImage(int index){
-        //img.setImageDrawable(Resource.imgs[player][index]);
-        img.setImageResource(imgSrc[player][index]);
+        img.setImageDrawable(Coordinate.getInstance().getChessImg(player, index));
     }
 
     public int getX(){

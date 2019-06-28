@@ -18,7 +18,7 @@ public class GameController {
     private AudioPlayer audioPlayer;
     private Chess[] red, yellow, blue, green;
     private Chess[][] chessList;
-    private int[] rollsId;
+    //private int[] rollsId;
     private Toast toast;
 
     private static final GameController instance = new GameController();
@@ -58,15 +58,6 @@ public class GameController {
     public void loadResources(){
         // 1张未投骰子图片id+6张骰子图片id的数组
         increaseLoadCount();
-        rollsId = new int[]{
-                R.drawable.roll0,
-                R.drawable.roll1,
-                R.drawable.roll2,
-                R.drawable.roll3,
-                R.drawable.roll4,
-                R.drawable.roll5,
-                R.drawable.roll6,
-        };
         //TODO other resources
     }
 
@@ -535,10 +526,6 @@ public class GameController {
 
     public Chess[][] getChessList(){
         return chessList;
-    }
-
-    public int[] getRollsId(){
-        return rollsId;
     }
 
     public void increaseAnimationCount(){

@@ -31,31 +31,45 @@ public class ControlHandler extends Handler {
     }
 
     public void changeStateToMove(final int rollNum){
-        gameController.setState(Value.STATE_MOVE_CHESS);
-        if(gameController.getConfigHelper().getPlayerType(gameController.getWhoseTurn()) == Value.LOCAL_HUMAN){
-            //Do nothing.
-        } else if(gameController.getConfigHelper().getPlayerType(gameController.getWhoseTurn()) == Value.AI){
-            if(gameController.getConfigHelper().getGameType() == Value.LOCAL) {
-                gameController.getControlHandler().getAIMove(rollNum);
-            } else if(gameController.getConfigHelper().getGameType() == Value.ONLINE_LAN){
-                if(gameController.getConfigHelper().isHost()) {
-                    gameController.getLANHandler().postAIMoveLAN(rollNum);
-                } else{
-                    gameController.getLANHandler().getOnlineMoveLAN();
-                }
-            } else if(gameController.getConfigHelper().getGameType() == Value.ONLINE_SERVER){
-                gameController.getServerHandler().getOnlineMoveServer();
-            }
-        } else if(gameController.getConfigHelper().getPlayerType(gameController.getWhoseTurn()) == Value.ONLINE_HUMAN) {
-            if(gameController.getConfigHelper().getGameType() == Value.ONLINE_LAN){
-                if(gameController.getConfigHelper().isHost()) {
+        super.post(new Runnable() {
+            @Override
+            public void run() {
+                gameController.setState(Value.STATE_MOVE_CHESS);
+                if(gameController.getConfigHelper().getPlayerType(gameController.getWhoseTurn()) == Value.LOCAL_HUMAN){
                     //Do nothing.
-                } else {
-                    gameController.getLANHandler().getOnlineMoveLAN();
-                } // else {}// do nothing
-            } else if(gameController.getConfigHelper().getGameType() == Value.ONLINE_SERVER){
-                gameController.getServerHandler().getOnlineMoveServer();
+                } else if(gameController.getConfigHelper().getPlayerType(gameController.getWhoseTurn()) == Value.AI){
+                    if(gameController.getConfigHelper().getGameType() == Value.LOCAL) {
+                        gameController.getControlHandler().getAIMove(rollNum);
+                    } else if(gameController.getConfigHelper().getGameType() == Value.ONLINE_LAN){
+                        if(gameController.getConfigHelper().isHost()) {
+                            gameController.getLANHandler().postAIMoveLAN(rollNum);
+                        } else{
+                            gameController.getLANHandler().getOnlineMoveLAN();
+                        }
+                    } else if(gameController.getConfigHelper().getGameType() == Value.ONLINE_SERVER){
+                        gameController.getServerHandler().getOnlineMoveServer();
+                    }
+                } else if(gameController.getConfigHelper().getPlayerType(gameController.getWhoseTurn()) == Value.ONLINE_HUMAN) {
+                    if(gameController.getConfigHelper().getGameType() == Value.ONLINE_LAN){
+                        if(gameController.getConfigHelper().isHost()) {
+                            //Do nothing.
+                        } else {
+                            gameController.getLANHandler().getOnlineMoveLAN();
+                        } // else {}// do nothing
+                    } else if(gameController.getConfigHelper().getGameType() == Value.ONLINE_SERVER){
+                        gameController.getServerHandler().getOnlineMoveServer();
+                    }
+                }
             }
-        }
+        });
+    }
+
+    public void postTurnEnd(){
+        super.post(new Runnable() {
+            @Override
+            public void run() {
+                gameController.turnEnd();
+            }
+        });
     }
 }

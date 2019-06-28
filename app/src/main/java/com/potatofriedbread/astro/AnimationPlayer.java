@@ -40,8 +40,8 @@ public class AnimationPlayer{
         rollAnimator.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
             @Override
             public void onAnimationUpdate(ValueAnimator valueAnimator) {
-                int id = (int)valueAnimator.getAnimatedValue();
-                roll.setImageResource(gameController.getRollsId()[id]);
+                int index = (int)valueAnimator.getAnimatedValue();
+                roll.setImageDrawable(Coordinate.getInstance().getRollImg(index));
             }
         });
         rollAnimator.addListener(new AnimatorListenerAdapter() {
@@ -49,10 +49,10 @@ public class AnimationPlayer{
             public void onAnimationEnd(Animator animation) {
                 super.onAnimationEnd(animation);
                 gameController.decreaseAnimationCount();
-                roll.setImageResource(gameController.getRollsId()[rollNum]);
+                roll.setImageDrawable(Coordinate.getInstance().getRollImg(rollNum));
                 ConfigHelper configHelper = gameController.getConfigHelper();
                 int whoseTurn = gameController.getWhoseTurn();
-                if(!gameController.canMove())gameController.turnEnd();
+                if(!gameController.canMove())gameController.getControlHandler().postTurnEnd();
                 else{
                     gameController.getControlHandler().changeStateToMove(rollNum);
                 }
@@ -88,7 +88,7 @@ public class AnimationPlayer{
                 chess.moveImg(endX, endY);
                 Log.d("TEST Choreographer", "Take off animation complete.");
                 gameController.decreaseAnimationCount();
-                gameController.turnEnd();
+                gameController.getControlHandler().postTurnEnd();
             }
         });
         takeOffAnimator.start();
@@ -138,7 +138,7 @@ public class AnimationPlayer{
                 Log.d("TEST Choreographer", "Moving animation complete.");
                 gameController.chessStatusJudge(chess);
                 if(gameController.noAnimationLeft()){
-                    gameController.turnEnd();
+                    gameController.getControlHandler().postTurnEnd();
                 }
             }
         });
@@ -184,7 +184,7 @@ public class AnimationPlayer{
                     } // else no new jump
                 }
                 if(gameController.noAnimationLeft()){
-                    gameController.turnEnd();
+                    gameController.getControlHandler().postTurnEnd();
                 }
             }
         });
@@ -217,7 +217,7 @@ public class AnimationPlayer{
                 chess.moveImg(endX, endY);
                 gameController.decreaseAnimationCount();
                 if(gameController.noAnimationLeft()){
-                    gameController.turnEnd();
+                    gameController.getControlHandler().postTurnEnd();
                 }
             }
         });
@@ -251,7 +251,7 @@ public class AnimationPlayer{
                 gameController.decreaseAnimationCount();
                 //if(gameController.noAnimationLeft()){
                 if(!gameController.gameOverJudge()){
-                    gameController.turnEnd();
+                    gameController.getControlHandler().postTurnEnd();
                 }
                 //}
             }

@@ -1,7 +1,5 @@
 package com.potatofriedbread.astro;
 
-import android.content.res.Resources;
-import android.content.res.TypedArray;
 import android.os.Bundle;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
@@ -15,7 +13,6 @@ import android.widget.ImageView;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
-import android.animation.ObjectAnimator;
 
 public class GameActivity extends AppCompatActivity {
 
@@ -51,10 +48,10 @@ public class GameActivity extends AppCompatActivity {
         map = findViewById(R.id.map);
         roll = findViewById(R.id.roll);
         playerView = new PlayerView[]{
-                new PlayerView(R.id.user2, R.id.icon2, R.id.username2, R.id.charge2, R.drawable.red, R.drawable.red_light),
-                new PlayerView(R.id.user4, R.id.icon4, R.id.username4, R.id.charge4, R.drawable.yellow, R.drawable.yellow_light),
-                new PlayerView(R.id.user3, R.id.icon3, R.id.username3, R.id.charge3, R.drawable.blue, R.drawable.blue_light),
-                new PlayerView(R.id.user1, R.id.icon1, R.id.username1, R.id.charge1, R.drawable.green, R.drawable.green_light)
+                new PlayerView(R.id.user2, R.id.icon2, R.id.username2, R.id.charge2, Value.RED),
+                new PlayerView(R.id.user4, R.id.icon4, R.id.username4, R.id.charge4, Value.YELLOW),
+                new PlayerView(R.id.user3, R.id.icon3, R.id.username3, R.id.charge3, Value.BLUE),
+                new PlayerView(R.id.user1, R.id.icon1, R.id.username1, R.id.charge1, Value.GREEN)
         };
         play.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -168,18 +165,18 @@ public class GameActivity extends AppCompatActivity {
         public ImageView icon;
         public TextView username;
         public TextView charge;
-        private int[] imgSrc;
+        public int player;
 
-        public PlayerView(int idUser, int idIcon, int idUsername, int idCharge, int imgSrc0, int imgSrc1){
+        public PlayerView(int idUser, int idIcon, int idUsername, int idCharge, int player){
             user = findViewById(idUser);
             icon = findViewById(idIcon);
             username = findViewById(idUsername);
             charge = findViewById(idCharge);
-            imgSrc = new int[]{imgSrc0, imgSrc1};
+            this.player = player;
         }
 
         public void changeImage(int index){
-            icon.setImageResource(imgSrc[index]);
+            icon.setImageDrawable(Coordinate.getInstance().getChessImg(player, index));
         }
     }
 }

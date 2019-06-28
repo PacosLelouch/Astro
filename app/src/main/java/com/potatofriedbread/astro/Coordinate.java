@@ -1,7 +1,8 @@
 package com.potatofriedbread.astro;
 
-import android.provider.ContactsContract;
-import android.support.percent.PercentRelativeLayout;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.graphics.drawable.BitmapDrawable;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.View;
@@ -10,11 +11,16 @@ import android.widget.ImageView;
 import android.widget.RelativeLayout;
 import android.support.v7.widget.Toolbar;
 
+import java.io.InputStream;
+
 public class Coordinate {
 
     private GameActivity gameActivity;
     private float leftX, topY, mapWidth, mapHeight, chessWidth;
     private static Coordinate instance = null;
+
+    private BitmapDrawable rollImg[];
+    private BitmapDrawable chessImg[][];
 
     public static void createInstance(GameActivity gameActivity){
         instance = new Coordinate(gameActivity);
@@ -29,6 +35,7 @@ public class Coordinate {
         GameController.getInstance().increaseLoadCount();
         final ImageView imageView = gameActivity.getMap();
         final Toolbar toolbar = gameActivity.getToolbar();
+        loadResourceImg();
         imageView.post(new Runnable() {
             @Override
             public void run() {
@@ -101,6 +108,42 @@ public class Coordinate {
         });
     }
 
+    private void loadResourceImg(){
+        int[][] chessImgSrc = {
+                {R.drawable.red, R.drawable.red_light, R.drawable.complete},
+                {R.drawable.yellow, R.drawable.yellow_light, R.drawable.complete},
+                {R.drawable.blue, R.drawable.blue_light, R.drawable.complete},
+                {R.drawable.green, R.drawable.green_light, R.drawable.complete},
+        };
+        int[] rollImgSrc = new int[]{
+                R.drawable.roll0,
+                R.drawable.roll1,
+                R.drawable.roll2,
+                R.drawable.roll3,
+                R.drawable.roll4,
+                R.drawable.roll5,
+                R.drawable.roll6,
+        };
+        chessImg = new BitmapDrawable[4][3];
+        rollImg = new BitmapDrawable[7];
+        BitmapFactory.Options opt = new BitmapFactory.Options();
+        opt.inPreferredConfig = Bitmap.Config.RGB_565;
+        opt.inPurgeable = true;
+        opt.inInputShareable = true;
+        for(int i = 0; i < chessImgSrc.length; ++i) {
+            for(int j = 0; j < chessImgSrc[i].length; ++j){
+                InputStream is = gameActivity.getResources().openRawResource(chessImgSrc[i][j]);
+                Bitmap bm = BitmapFactory.decodeStream(is, null, opt);
+                chessImg[i][j] = new BitmapDrawable(gameActivity.getResources(), bm);
+            }
+        }
+        for(int i = 0; i < rollImgSrc.length; ++i){
+            InputStream is = gameActivity.getResources().openRawResource(rollImgSrc[i]);
+            Bitmap bm = BitmapFactory.decodeStream(is, null, opt);
+            rollImg[i] = new BitmapDrawable(gameActivity.getResources(), bm);
+        }
+    }
+
     public float getChessWidth(){
         return chessWidth;
     }
@@ -122,8 +165,16 @@ public class Coordinate {
     }
 
     public boolean clickTheChess(Chess chess, View view){
-        int viewX = (int)screenToMapX(view.getX()), viewY = (int)screenToMapY(view.getY());
+        int viewX = screenToMapX(view.getX()), viewY = screenToMapY(view.getY());
         return chess.getX() == viewX &&
                 chess.getY() == viewY;
+    }
+
+    public BitmapDrawable getChessImg(int player, int index){
+        return chessImg[player][index];
+    }
+
+    public BitmapDrawable getRollImg(int index) {
+        return rollImg[index];
     }
 }
