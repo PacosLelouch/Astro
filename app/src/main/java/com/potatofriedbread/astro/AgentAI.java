@@ -62,12 +62,12 @@ public class AgentAI {
             }
         }
         for(int i = 0; i < yourChess.length; ++i){
-            if(yourChess[i].getNowPos() + rollNum == Value.TERMINAL){
+            if(yourChess[i].isFlying() && yourChess[i].getNowPos() + rollNum == Value.TERMINAL){
                 return yourChess[i];
             }
         }
         for(int i = 0; i < yourChess.length; ++i){
-            if(isConflict(chessList, player ,yourChess[i].getNowPos() + rollNum)){
+            if(yourChess[i].isFlying() && isConflict(chessList, player ,yourChess[i].getNowPos() + rollNum)){
                 return yourChess[i];
             }
         }
@@ -78,20 +78,16 @@ public class AgentAI {
         }
         int maxIndex = -1, maxPos = -1;
         for(int i = 0; i < yourChess.length; ++i){
-            if(yourChess[i].isFlying()){
-                if(yourChess[i].getNowPos() >= maxPos && !Value.SAFE_POINT.contains(yourChess[i].getNowPos())){
-                    maxPos = yourChess[i].getNowPos();
-                    maxIndex = i;
-                }
+            if(yourChess[i].isFlying() && yourChess[i].getNowPos() >= maxPos && !Value.SAFE_POINT.contains(yourChess[i].getNowPos())){
+                maxPos = yourChess[i].getNowPos();
+                maxIndex = i;
             }
         }
         if(maxIndex == -1){
             for(int i = 0; i < yourChess.length; ++i){
-                if(yourChess[i].isFlying()){
-                    if(yourChess[i].getNowPos() >= maxPos){
-                        maxPos = yourChess[i].getNowPos();
-                        maxIndex = i;
-                    }
+                if(yourChess[i].isFlying() && yourChess[i].getNowPos() >= maxPos){
+                    maxPos = yourChess[i].getNowPos();
+                    maxIndex = i;
                 }
             }
         }
@@ -102,8 +98,8 @@ public class AgentAI {
     private static Chess chooseAChessType2(Chess[][] chessList, int player, int rollNum){
         Chess[] yourChess = chessList[player];
         for(int i = 0; i < yourChess.length; ++i){
-            if(isConflict(chessList, player ,yourChess[i].getNowPos() + rollNum) ||
-                    isConflictFly(chessList, player ,yourChess[i].getNowPos() + rollNum)){
+            if(yourChess[i].isFlying() && (isConflict(chessList, player ,yourChess[i].getNowPos() + rollNum) ||
+                    isConflictFly(chessList, player ,yourChess[i].getNowPos() + rollNum))){
                 return yourChess[i];
             }
         }
@@ -115,7 +111,7 @@ public class AgentAI {
             }
         }
         for(int i = 0; i < yourChess.length; ++i){
-            if(yourChess[i].getNowPos() + rollNum == Value.TERMINAL){
+            if(yourChess[i].isFlying() && yourChess[i].getNowPos() + rollNum == Value.TERMINAL){
                 return yourChess[i];
             }
         }
@@ -126,20 +122,16 @@ public class AgentAI {
         }
         int maxIndex = -1, maxPos = -1;
         for(int i = 0; i < yourChess.length; ++i){
-            if(yourChess[i].isFlying()){
-                if(yourChess[i].getNowPos() >= maxPos && !Value.SAFE_POINT.contains(yourChess[i].getNowPos())){
-                    maxPos = yourChess[i].getNowPos();
-                    maxIndex = i;
-                }
+            if(yourChess[i].isFlying() && yourChess[i].getNowPos() >= maxPos && !Value.SAFE_POINT.contains(yourChess[i].getNowPos())){
+                maxPos = yourChess[i].getNowPos();
+                maxIndex = i;
             }
         }
         if(maxIndex == -1){
             for(int i = 0; i < yourChess.length; ++i){
-                if(yourChess[i].isFlying()){
-                    if(yourChess[i].getNowPos() >= maxPos){
-                        maxPos = yourChess[i].getNowPos();
-                        maxIndex = i;
-                    }
+                if(yourChess[i].isFlying() && yourChess[i].getNowPos() >= maxPos){
+                    maxPos = yourChess[i].getNowPos();
+                    maxIndex = i;
                 }
             }
         }
