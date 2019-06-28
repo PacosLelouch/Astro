@@ -1,27 +1,46 @@
 package com.potatofriedbread.astro;
 
+import android.util.Log;
 import android.widget.ImageView;
 
 import java.io.Serializable;
 
 public class Chess implements Serializable {
     private static final long serialVersionUID = 1L;
+    private static final int[][] imgSrc = {
+        {R.drawable.red, R.drawable.red_light, R.drawable.complete},
+        {R.drawable.yellow, R.drawable.yellow_light, R.drawable.complete},
+        {R.drawable.blue, R.drawable.blue_light, R.drawable.complete},
+        {R.drawable.green, R.drawable.green_light, R.drawable.complete},
+    };
     private boolean flying, completed;
     private int nowPos, player, chessNum;
     private ImageView img;
 
     // Load chess image.
     public Chess(int player, int chessNum, ImageView img){
-        reset();
         this.player = player;
         this.chessNum = chessNum;
         this.img = img;
+        reset();
     }
 
     public void reset(){
         completed = false;
         flying = false;
         nowPos = 0;
+    }
+
+    public void moveImg(final float screenX, final float screenY){
+        /*img.post(new Runnable() {
+            @Override
+            public void run() {
+                img.setTranslationX(screenX);
+                img.setTranslationY(screenY);
+            }
+        });*/
+        img.setTranslationX(screenX);
+        img.setTranslationY(screenY);
     }
     /*
     public void move(int posX, int posY){
@@ -30,23 +49,30 @@ public class Chess implements Serializable {
     }*/
 
     public void move(int step){
-        //max: 57
-        int overflow = nowPos + step - Value.TERMINAL;
-        if(overflow < 0){
-            overflow = 0;
-        }
         if(isFlying()){
-            //move(Value.PATHS_X[player][nowPos + step - overflow], Value.PATHS_Y[player][nowPos + step - overflow]);
-            nowPos += step - overflow;
+            nowPos += step;
+            if(nowPos > Value.TERMINAL){
+                nowPos = 2 * Value.TERMINAL - nowPos;
+            }
         }
+    }
+
+    public void changeImage(int index){
+        img.setImageResource(imgSrc[player][index]);
     }
 
     public int getX(){
-        return Coordinate.getInstance().screenToMapX((int)img.getX());
+        if(isFlying()){
+            return Value.PATHS_X[player][nowPos];
+        }
+        return Value.STARTS_X[player][chessNum];
     }
 
     public int getY(){
-        return Coordinate.getInstance().screenToMapY((int)img.getY());
+        if(isFlying()){
+            return Value.PATHS_Y[player][nowPos];
+        }
+        return Value.STARTS_Y[player][chessNum];
     }
 
     public int getPlayer(){
@@ -84,7 +110,7 @@ public class Chess implements Serializable {
     public void killed(){
         nowPos = 0;
         setFlying(false);
-        System.out.println("Chess are killed.");
+        Log.d("TEST", "Chess are killed.");
     }
 
     public ImageView getImg(){
@@ -97,5 +123,20 @@ public class Chess implements Serializable {
 
     public void setCompleted(boolean value){
         completed = value;
+    }
+
+    public int rival(){ // return (player + 2) % 4;
+        switch(player){
+            case Value.RED:
+                return Value.BLUE;
+            case Value.YELLOW:
+                return Value.GREEN;
+            case Value.BLUE:
+                return Value.RED;
+            case Value.GREEN:
+                return Value.YELLOW;
+            default:
+                return -1;
+        }
     }
 }

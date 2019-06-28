@@ -2,12 +2,10 @@ package com.potatofriedbread.astro;
 
 import android.util.Log;
 import android.view.View;
-import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.RelativeLayout;
+import android.widget.Toast;
 
-//TODO: Handler的POST的方法都换成message好了，然后拆几个Handler，方便异步。
-//TODO: 有关state的使用还没加进去。
 public class GameController {
 
     private GameActivity gameActivity;
@@ -16,10 +14,12 @@ public class GameController {
     private ControlHandler controlHandler;
     private LANHandler lanHandler;
     private ServerHandler serverHandler;
-    private AnimationHandler animationHandler;
-    private AudioHandler audioHandler;
+    private AnimationPlayer animationPlayer;
+    private AudioPlayer audioPlayer;
     private Chess[] red, yellow, blue, green;
     private Chess[][] chessList;
+    private int[] rollsId;
+    private Toast toast;
 
     private static final GameController instance = new GameController();
 
@@ -29,7 +29,7 @@ public class GameController {
             initGame();
         } catch (Exception e){
             e.printStackTrace();
-            System.out.println("Fail to initialize game.");
+            Log.d("TEST", "Fail to initialize game.");
         }*/
     }
 
@@ -37,31 +37,41 @@ public class GameController {
     public void initGame() throws Exception{
         try{
             //completeArrowUsed = 0;
-            state = Value.STATE_CANNOT_MOVE;
+            setState(Value.STATE_CANNOT_MOVE);
             animationLeft = 0;
             loadLeft = 0;
             rollNum = 0;
-            controlHandler = new ControlHandler(this);
-            audioHandler = new AudioHandler(this);
-            lanHandler = new LANHandler(this);
-            serverHandler = new ServerHandler(this);
-            animationHandler = new AnimationHandler(this);
             loadResources();
             //Do not load chess.
-            initChessPosAll();
-            System.out.println("Initialization complete.");
+            controlHandler = new ControlHandler(this);
+            audioPlayer = new AudioPlayer(this);
+            lanHandler = new LANHandler(this);
+            serverHandler = new ServerHandler(this);
+            animationPlayer = new AnimationPlayer(this);
+            Log.d("TEST", "Initialization complete.");
         } catch (Exception e){
             e.printStackTrace();
-            System.out.println("Fail to initialize game.");
+            Log.d("TEST", "Fail to initialize game.");
         }
     }
 
     public void loadResources(){
-        //TODO resources
+        // 1张未投骰子图片id+6张骰子图片id的数组
+        increaseLoadCount();
+        rollsId = new int[]{
+                R.drawable.roll0,
+                R.drawable.roll1,
+                R.drawable.roll2,
+                R.drawable.roll3,
+                R.drawable.roll4,
+                R.drawable.roll5,
+                R.drawable.roll6,
+        };
+        //TODO other resources
     }
 
     public void loadChess(){
-        increaseLoadCount();
+        // 棋子
         final ImageView[][] images = {{
                 gameActivity.findViewById(R.id.red0),
                 gameActivity.findViewById(R.id.red1),
@@ -111,6 +121,7 @@ public class GameController {
                             }
                         });
                         decreaseLoadCount();
+                        initChessPosAll();
                         if(noLoadingLeft()){
                             gameActivity.gameStart();
                         }
@@ -167,14 +178,16 @@ public class GameController {
             configHelper.changePlayerType(player, Value.LOCAL_HUMAN);
         }
         initWhoseTurn();
-        System.out.println("Game start.");
+        Log.d("TEST", "Game start.");
         turnStart();
     }
 
     public void turnStart(){
+        showToastShort(Value.PLAYER_COLOR[whoseTurn] + "'s turn.");
+        gameActivity.displayPlayerPrompt(whoseTurn);
         setState(Value.STATE_ROLL);
         resetRoll();
-        System.out.println(Value.PLAYER_COLOR[whoseTurn] + "'s turn started.");
+        Log.d("TEST", Value.PLAYER_COLOR[whoseTurn] + "'s turn started.");
         if(configHelper.getGameType() == Value.LOCAL){
             if(configHelper.getPlayerType(whoseTurn) == Value.AI){
                 controlHandler.getAIRoll();
@@ -199,7 +212,7 @@ public class GameController {
     }
 
     public void turnEnd(){
-        System.out.println(Value.PLAYER_COLOR[whoseTurn] + "'s turn end.");
+        Log.d("TEST", Value.PLAYER_COLOR[whoseTurn] + "'s turn end.");
         if(configHelper.getGameType() == Value.LOCAL){
             // No operation.
         } else if(configHelper.getGameType() == Value.ONLINE_LAN) {
@@ -214,36 +227,42 @@ public class GameController {
         if(!Value.COMBO_NUM.contains(rollNum)){
             nextTurn();
         } else{
-            System.out.println("Another chance.");
+            Log.d("TEST", "Another chance.");
             turnStart();
         }
     }
 
     public void nextTurn(){
-        whoseTurn = (whoseTurn + 1) % chessList.length;
+        setWhoseTurn((whoseTurn + 1) % chessList.length);
         turnStart();
     }
 
     public void roll(){
         rollNum = (int)(Math.random() * 6) + 1;
         setState(Value.STATE_CANNOT_MOVE);
-        animationHandler.postRollAnimation(rollNum);
+        animationPlayer.playRollAnimation(rollNum);
         //TextView's operation
-        //TODO:下面的代码可能放animation的onAnimationEnd
+        //下面的代码已经放animation的onAnimationEnd
+    }
+
+    public void getOnlineRoll(int rollNum){
+        this.rollNum = rollNum;
+        setState(Value.STATE_CANNOT_MOVE);
+        animationPlayer.playRollAnimation(rollNum);
     }
 
     public boolean restartGame(){
         try{
             initChessPosAll();
-            System.out.println("Reset chess.");
+            Log.d("TEST", "Reset chess.");
             configHelper.reset();
-            System.out.println("Reset helper.");
+            Log.d("TEST", "Reset helper.");
             //TODO complete arrow.
             rollNum = 0;
             //gameStart(configHelper.getGameType(), configHelper.getHostPlayer());
         } catch(Exception e){
             e.printStackTrace();
-            System.out.println("Fail to restart game.");
+            Log.d("TEST", "Fail to restart game.");
             return false;
         }
         return true;
@@ -251,11 +270,11 @@ public class GameController {
 
     public void initWhoseTurn(){
         if(configHelper.getGameType() == Value.LOCAL) {
-            whoseTurn = Value.RED; // TODO: Just for test.
-            //whoseTurn = (int) (Math.random() * chessList.length);
+            setWhoseTurn(Value.RED); // TODO: Just for test.
+            //setWhoseTurn((int)(Math.random() * chessList.length));
         } else if(configHelper.getGameType() == Value.ONLINE_LAN){
             if(configHelper.isHost()){
-                whoseTurn = (int)(Math.random() * chessList.length);
+                setWhoseTurn((int)(Math.random() * chessList.length));
                 lanHandler.postWhoseTurnLan(whoseTurn);
             } else{
                 lanHandler.getWhoseTurnLAN();
@@ -281,9 +300,10 @@ public class GameController {
 
     public void initChessPos(Chess chess){
         chess.reset();
-        //TODO: put chess at start point. Using chess.getPlayer() and chess.getChessNum().
-        chess.getImg().setTranslationY(Coordinate.getInstance().mapToScreenY(Value.STARTS_X[chess.getPlayer()][chess.getChessNum()]));
-        chess.getImg().setTranslationX(Coordinate.getInstance().mapToScreenX(Value.STARTS_Y[chess.getPlayer()][chess.getChessNum()]));
+        chess.moveImg(
+                Coordinate.getInstance().mapToScreenX(Value.STARTS_X[chess.getPlayer()][chess.getChessNum()]),
+                Coordinate.getInstance().mapToScreenY(Value.STARTS_Y[chess.getPlayer()][chess.getChessNum()])
+        );
     }
 
     public void resetRoll(){
@@ -292,59 +312,63 @@ public class GameController {
     }
 
     public boolean canMove(){
-        if(state != Value.STATE_MOVE_CHESS){
-            return false;
-        }
         if(Value.TAKE_OFF_NUM.contains(rollNum)){
             //TextView
-            System.out.println(Value.PLAYER_COLOR[whoseTurn] + " takes off.");
+            Log.d("TEST", Value.PLAYER_COLOR[whoseTurn] + " takes off.");
             return true;
         }
         for(int i = 0; i < 4; ++i){
             Chess chess = chessList[whoseTurn][i];
             if(chess.isFlying()){
-                System.out.println(Value.PLAYER_COLOR[whoseTurn] + " can move planes.");
+                Log.d("TEST", Value.PLAYER_COLOR[whoseTurn] + " can move planes.");
                 return true;
             }
         }
-        System.out.println(Value.PLAYER_COLOR[whoseTurn] + " cannot move anything.");
+        Log.d("TEST", Value.PLAYER_COLOR[whoseTurn] + " cannot move anything.");
         return false;
     }
 
     public void go(Chess chess){
-        if(whoseTurn != chess.getPlayer()){
-            System.out.println("Not your turn.");
+        if(chess == null){
             return;
         }
-        if(state != Value.STATE_CANNOT_MOVE){
-            System.out.println("You cannot move now.");
+        if(whoseTurn != chess.getPlayer()){
+            Log.d("TEST", "Not your turn.");
+            showToastShort("Not your turn.");
+            return;
+        }
+        if(state != Value.STATE_MOVE_CHESS){
+            Log.d("TEST", "You cannot move now.");
+            showToastShort("You cannot move now.");
             return;
         }
         if(rollNum != 0){
             if (Value.TAKE_OFF_NUM.contains(rollNum)) {
                 if (chess == null) {
-                    System.out.println("You didn't select any chess.");
+                    Log.d("TEST", "You didn't select any chess.");
+                    return;
                 } else if (!chess.isFlying() && !chess.isCompleted()) {
                     chess.takeOff();
-                    audioHandler.playFlyAudio();
-                    animationHandler.postTakeOffAnimator(chess);
-                    System.out.println("Take off.");
+                    audioPlayer.playFlyAudio();
+                    animationPlayer.playTakeOffAnimator(chess);
+                    Log.d("TEST", "Take off.");
                 } else {
                     int from = chess.getNowPos();
                     chess.move(rollNum);
-                    audioHandler.playFlyAudio();
-                    animationHandler.postMoveAnimation(chess, from, rollNum);
-                    System.out.println("RollNum = " + rollNum + ", moving complete.");
+                    audioPlayer.playFlyAudio();
+                    animationPlayer.playMoveAnimation(chess, from, rollNum);
+                    Log.d("TEST", "RollNum = " + rollNum + ", moving complete.");
                 }
             } else {
                 int from = chess.getNowPos();
                 chess.move(rollNum);
-                audioHandler.playFlyAudio();
-                animationHandler.postMoveAnimation(chess, from, rollNum);
-                System.out.println("RollNum = " + rollNum + ", moving complete.");
+                audioPlayer.playFlyAudio();
+                animationPlayer.playMoveAnimation(chess, from, rollNum);
+                Log.d("TEST", "RollNum = " + rollNum + ", moving complete.");
             }
+            hideMovable();
         } else{
-            System.out.println("Please roll first.");
+            Log.d("TEST", "Please roll first.");
         }
         //turnEnd(); // To async.
     }
@@ -355,7 +379,7 @@ public class GameController {
         if(pos == Value.TERMINAL){
             int from = chess.getNowPos();
             chess.completeTour();
-            animationHandler.postTerminateAnimation(chess, from);
+            animationPlayer.playTerminateAnimation(chess, from);
             //initChessPos(chess);
             //gameOverJudge(); // To async.
         } else if(Value.FLY_POINT == pos){
@@ -368,20 +392,20 @@ public class GameController {
     public void chessFly(Chess chess, int jumpNum){
         int from = chess.getNowPos();
         chess.move(12);
-        System.out.println("fly");
+        Log.d("TEST", "fly");
         int to = chess.getNowPos();
-        audioHandler.playFlyAudio();
-        animationHandler.postJumpAnimation(chess, from, to, jumpNum);
+        audioPlayer.playFlyAudio();
+        animationPlayer.playJumpAnimation(chess, from, to, jumpNum);
         //flyKillJudge(chess);
     }
 
     public void chessJump(Chess chess, int jumpNum){
         int from = chess.getNowPos();
-        chess.move(4);;
-        System.out.println("jump");
+        chess.move(4);
+        Log.d("TEST", "jump");
         int to = chess.getNowPos();
-        audioHandler.playFlyAudio();
-        animationHandler.postJumpAnimation(chess, from, to, jumpNum);
+        audioPlayer.playFlyAudio();
+        animationPlayer.playJumpAnimation(chess, from, to, jumpNum);
     }
 
     public boolean gameOverJudge(){
@@ -394,7 +418,7 @@ public class GameController {
             }
         }
         if(flag){
-            System.out.println(Value.PLAYER_COLOR[whoseTurn] + " wins the game.");
+            Log.d("TEST", Value.PLAYER_COLOR[whoseTurn] + " wins the game.");
             //TextView
             try{
                 Thread.sleep(3000);
@@ -415,11 +439,11 @@ public class GameController {
             for(int j = 0; j < chessList[i].length; ++j){
                 Chess targetChess = chessList[i][j];
                 if(chess.getX() == targetChess.getX() && chess.getY() == targetChess.getY()){
-                    System.out.println("A chess of player " + Value.PLAYER_COLOR[targetChess.getPlayer()] + " is killed.");
+                    Log.d("TEST", "A chess of player " + Value.PLAYER_COLOR[targetChess.getPlayer()] + " is killed.");
                     int from = targetChess.getNowPos();
                     targetChess.killed();
-                    audioHandler.playKillAudio();
-                    animationHandler.postKillAnimation(targetChess, from);
+                    audioPlayer.playKillAudio();
+                    animationPlayer.playKillAnimation(targetChess, from);
                     //initChessPos(targetChess);
                 }
             }
@@ -427,29 +451,13 @@ public class GameController {
     }
 
     public void flyKillJudge(Chess chess){
-        int target;
-        switch(chess.getPlayer()){
-            case Value.RED:
-                target = Value.BLUE;
-                break;
-            case Value.YELLOW:
-                target = Value.GREEN;
-                break;
-            case Value.BLUE:
-                target = Value.RED;
-                break;
-            case Value.GREEN:
-                target = Value.YELLOW;
-                break;
-            default:
-                target = -1;
-        }
+        int target = chess.rival();
         for(int i = 0; i < 4; ++i){ // 这个版本大跳跃还能撞上终点前的飞机吗
             Chess targetChess = chessList[target][i];
             if(targetChess.getNowPos() == Value.CONFLICT){
                 targetChess.killed();
-                audioHandler.playKillAudio();
-                animationHandler.postKillAnimation(targetChess, Value.CONFLICT);
+                audioPlayer.playKillAudio();
+                animationPlayer.playKillAnimation(targetChess, Value.CONFLICT);
                 //initChessPos(targetChess);
             }
         }
@@ -462,12 +470,25 @@ public class GameController {
                 return chess;
             }
         }
-        System.out.println("You didn't click any chess.");
+        Log.d("TEST", "You didn't click any chess.");
         return null;
+    }
+
+    public void showToastShort(String text){
+        if(toast != null){
+            toast.cancel();
+        }
+        toast = Toast.makeText(gameActivity, text, Toast.LENGTH_SHORT);
+        toast.show();
     }
 
     public void setState(int value){
         state = value;
+        if(value == Value.STATE_ROLL){
+            gameActivity.getRoll().setImageResource(R.drawable.roll0);
+        } else if(value == Value.STATE_MOVE_CHESS){
+            displayMovable();
+        }
     }
 
     public int getState(){
@@ -486,12 +507,12 @@ public class GameController {
         return serverHandler;
     }
 
-    public AnimationHandler getAnimationHandler(){
-        return animationHandler;
+    public AnimationPlayer getAnimationPlayer(){
+        return animationPlayer;
     }
 
-    public AudioHandler getAudioHandler(){
-        return audioHandler;
+    public AudioPlayer getAudioPlayer(){
+        return audioPlayer;
     }
 
     public ConfigHelper getConfigHelper(){
@@ -506,15 +527,22 @@ public class GameController {
         return chessList;
     }
 
+    public int[] getRollsId(){
+        return rollsId;
+    }
+
     public void increaseAnimationCount(){
         animationLeft++;
+        Log.d("TEST_ANIMATION", animationLeft + ", increase.");
     }
 
     public void decreaseAnimationCount(){
         animationLeft--;
+        Log.d("TEST_ANIMATION", animationLeft + ", decrease.");
     }
 
     public boolean noAnimationLeft(){
+        Log.d("TEST_ANIMATION", animationLeft + " left.");
         return animationLeft == 0;
     }
 
@@ -532,9 +560,38 @@ public class GameController {
 
     public void setGameActivity(GameActivity value){
         gameActivity = value;
+        Log.d("TEST","gameActivity: " + gameActivity.toString());
+    }
+
+    public GameActivity getGameActivity() {
+        return gameActivity;
     }
 
     public static GameController getInstance() {
         return instance;
+    }
+
+    private void displayMovable(){
+        for(int i = 0; i < chessList[whoseTurn].length; ++i){
+            Chess chess = chessList[whoseTurn][i];
+            if (!chess.isFlying() && !chess.isCompleted()) {
+                chess.changeImage(Value.TAKE_OFF_NUM.contains(rollNum) ? 1 : 0);
+            } else if(!chess.isCompleted()) {
+                chess.changeImage(1);
+            } else {
+                chess.changeImage(2);
+            }
+        }
+    }
+
+    private void hideMovable(){
+        for(int i = 0; i < chessList[whoseTurn].length; ++i){
+            Chess chess = chessList[whoseTurn][i];
+            if(!chess.isCompleted()) {
+                chess.changeImage(0);
+            } else {
+                chess.changeImage(2);
+            }
+        }
     }
 }

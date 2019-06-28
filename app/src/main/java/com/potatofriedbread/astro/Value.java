@@ -27,8 +27,9 @@ public class Value {
     static final int TERMINAL = 56;
     static final int CONFLICT = 53; // 这个版本大跳跃还能撞上终点前的飞机吗
     static final int FLY_POINT = 18;
-    static final List<Integer> JUMP_POINT = (List<Integer>)Arrays.asList(2, 6, 10, 14, /*18,*/ 22, 26, 30, 34, 38, 42, 46, 50);
-    static final List<Integer> TAKE_OFF_NUM = (List<Integer>)Arrays.asList(6);
+    static final List<Integer> JUMP_POINT = (List<Integer>)Arrays.asList(2, 6, 10, 14, /*18,*/ 22, 26, 30, 34, 38, 42, 46);
+    static final List<Integer> SAFE_POINT = (List<Integer>)Arrays.asList(0, 51, 52, 54, 55, 56);
+    static final List<Integer> TAKE_OFF_NUM = (List<Integer>)Arrays.asList(2, 4, 6);
     static final List<Integer> COMBO_NUM = (List<Integer>)Arrays.asList(6);
 
     static final String[] PLAYER_COLOR = new String[]{"Red", "Yellow", "Blue", "Green"};

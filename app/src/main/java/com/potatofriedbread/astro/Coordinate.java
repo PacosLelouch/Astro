@@ -1,7 +1,9 @@
 package com.potatofriedbread.astro;
 
+import android.provider.ContactsContract;
 import android.support.percent.PercentRelativeLayout;
 import android.util.DisplayMetrics;
+import android.util.Log;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.ImageView;
@@ -63,10 +65,27 @@ public class Coordinate {
                         float toolbarHeight = toolbar.getHeight();
                         topY += toolbarHeight;
                         chessWidth = mapWidth / 18;
-                        System.out.println("Measured: " + leftX + " " + topY + " " + mapWidth + " " + mapHeight);
-                        System.out.println("ChessWidth: " + chessWidth);
+                        GameController.getInstance().increaseLoadCount();
+                        final ImageView roll = gameActivity.getRoll();
+                        roll.post(new Runnable() {
+                            @Override
+                            public void run() {
+                                RelativeLayout.LayoutParams layoutParams = new RelativeLayout.LayoutParams(roll.getLayoutParams());
+                                layoutParams.width = (int)chessWidth;
+                                layoutParams.height = (int)chessWidth;
+                                roll.setLayoutParams(layoutParams);
+                                roll.setTranslationX(leftX + mapWidth / 2 - chessWidth / 2);
+                                roll.setTranslationY(topY + mapHeight / 2 - chessWidth / 2);
+                                GameController.getInstance().decreaseLoadCount();
+                                if(GameController.getInstance().noLoadingLeft()){
+                                    gameActivity.gameStart();
+                                }
+                            }
+                        });
+                        Log.d("TEST", "Measured: " + leftX + " " + topY + " " + mapWidth + " " + mapHeight);
+                        Log.d("TEST", "ChessWidth: " + chessWidth);
                         /*
-                        System.out.println("Image: " + imageView.getWidth() + " " + imageView.getHeight());*/
+                        Log.d("TEST", "Image: " + imageView.getWidth() + " " + imageView.getHeight());*/
                         GameController.getInstance().loadChess();
                         GameController.getInstance().decreaseLoadCount();
                         if(GameController.getInstance().noLoadingLeft()){

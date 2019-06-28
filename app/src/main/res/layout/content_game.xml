@@ -150,7 +150,7 @@
             android:layout_width="wrap_content"
             android:layout_below="@+id/username4"
             android:layout_alignLeft="@id/username4"
-            android:text="(托管中)"
+            android:text=""
             />
 
     </RelativeLayout>

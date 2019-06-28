@@ -1,6 +1,7 @@
 # Astro 
-注意GameController是单例的。
-分了很多个Handler，但是几乎所有Handler是空的。  
-写了一种AI："温和的"、"更趋向于奔向终点"、"不会主动击杀其他玩家"的AI类型。  
-使用了Coordinate类进（单例）行坐标转换，Chess中的静态变量已经移到Coordiinate中。  
-只要等一波动画，就可以跑本地飞行棋了。  
+注意GameController和Coordinate是单例的。
+网络相关的Handler是空的。
+动画和音效已经不再是Handler，因为没必要。
+动画补完，不过好像有点卡？
+实现了3种憨憨AI（尽管只用到一种）。
+现在基本可以进行本地游戏。

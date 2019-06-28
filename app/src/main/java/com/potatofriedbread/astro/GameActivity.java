@@ -1,8 +1,8 @@
 package com.potatofriedbread.astro;
 
+import android.content.res.Resources;
+import android.content.res.TypedArray;
 import android.os.Bundle;
-import android.support.design.widget.FloatingActionButton;
-import android.support.design.widget.Snackbar;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
@@ -15,6 +15,7 @@ import android.widget.ImageView;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
+import android.animation.ObjectAnimator;
 
 public class GameActivity extends AppCompatActivity {
 
@@ -26,6 +27,7 @@ public class GameActivity extends AppCompatActivity {
     private Toolbar toolbar;
     private PlayerView[] playerView;
     private Coordinate coordinate;
+    private ImageView roll;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -34,7 +36,7 @@ public class GameActivity extends AppCompatActivity {
             GameController.getInstance().initGame();
         } catch (Exception e){
             e.printStackTrace();
-            System.out.println("Fail to initialize game.");
+            Log.d("TEST", "Fail to initialize game.");
         }
         localPlayer = Value.RED; // 以后是在房间里选
 
@@ -47,11 +49,12 @@ public class GameActivity extends AppCompatActivity {
         play = findViewById(R.id.play);
         charge = findViewById(R.id.charge);
         map = findViewById(R.id.map);
+        roll = findViewById(R.id.roll);
         playerView = new PlayerView[]{
-                new PlayerView(R.id.user2, R.id.icon2, R.id.username2, R.id.charge2),
-                new PlayerView(R.id.user4, R.id.icon4, R.id.username4, R.id.charge4),
-                new PlayerView(R.id.user3, R.id.icon3, R.id.username3, R.id.charge3),
-                new PlayerView(R.id.user1, R.id.icon1, R.id.username1, R.id.charge1)
+                new PlayerView(R.id.user2, R.id.icon2, R.id.username2, R.id.charge2, R.drawable.red, R.drawable.red_light),
+                new PlayerView(R.id.user4, R.id.icon4, R.id.username4, R.id.charge4, R.drawable.yellow, R.drawable.yellow_light),
+                new PlayerView(R.id.user3, R.id.icon3, R.id.username3, R.id.charge3, R.drawable.blue, R.drawable.blue_light),
+                new PlayerView(R.id.user1, R.id.icon1, R.id.username1, R.id.charge1, R.drawable.green, R.drawable.green_light)
         };
         play.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -102,11 +105,32 @@ public class GameActivity extends AppCompatActivity {
     public ImageView getMap(){
         return map;
     }
+    public ImageView getRoll() { return roll; }
     public Toolbar getToolbar() { return toolbar; }
 
     private void onePlay(){
-        Log.i("TEST", "Roll.");
         //TODO
+        //6张骰子图片的数组
+        /*
+        Resources res = getResources();
+        TypedArray rollImage = res.obtainTypedArray(R.array.roll_images);
+        int len = rollImage.length();
+        int[] rollIds = new int[len];
+        for (int i = 0; i < len; i++){
+            rollIds[i] = rollImage.getResourceId(i, 0);//资源的id
+        }*/
+        //在这里试一下骰子的animation，您可以把它移走zzzz
+        /*
+        ObjectAnimator.ofFloat(roll, "translationX", 0f, 600f)
+                .setDuration(1000).start();*/
+        if(gameController.getWhoseTurn() != localPlayer) {
+            Log.d("TEST", "Not your turn to roll.");
+        } else if(gameController.getState() != Value.STATE_ROLL){
+            Log.d("TEST", "Not the state to roll.");
+        } else{
+            gameController.roll();
+            Log.i("TEST", "Roll.");
+        }
     }
 
     private void setCharge(){
@@ -122,7 +146,21 @@ public class GameActivity extends AppCompatActivity {
     }
 
     public void gameStart(){
+        gameController.showToastShort("Game start.");
         gameController.gameStart(Value.LOCAL, localPlayer);
+        for(int i = 0; i < playerView.length; ++i){
+            int playerType = gameController.getConfigHelper().getPlayerType(i);
+            if(playerType == Value.AI) {
+                playerView[i].charge.setText("(托管中)");
+            }
+        }
+    }
+
+    public void displayPlayerPrompt(int player){
+        for(int i = 0; i < playerView.length; ++i){
+            playerView[i].changeImage(0);
+        }
+        playerView[player].changeImage(1);
     }
 
     public class PlayerView{
@@ -130,12 +168,18 @@ public class GameActivity extends AppCompatActivity {
         public ImageView icon;
         public TextView username;
         public TextView charge;
+        private int[] imgSrc;
 
-        public PlayerView(int idUser, int idIcon, int idUsername, int idCharge){
+        public PlayerView(int idUser, int idIcon, int idUsername, int idCharge, int imgSrc0, int imgSrc1){
             user = findViewById(idUser);
             icon = findViewById(idIcon);
             username = findViewById(idUsername);
             charge = findViewById(idCharge);
+            imgSrc = new int[]{imgSrc0, imgSrc1};
+        }
+
+        public void changeImage(int index){
+            icon.setImageResource(imgSrc[index]);
         }
     }
 }

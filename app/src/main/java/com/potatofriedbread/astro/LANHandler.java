@@ -11,6 +11,24 @@ public class LANHandler extends Handler {
         this.gameController = gameController;
     }
 
+    public void newRoom(){ // 按下后建房，（线程1）发udp广播，（线程2）收tcp连接
+        super.post(new Runnable() {
+            @Override
+            public void run() {
+                //TODO
+            }
+        });
+    }
+
+    public void joinIn(){ // 按下后加房，（线程1）发tcp连接
+        super.post(new Runnable() {
+            @Override
+            public void run() {
+                //TODO
+            }
+        });
+    }
+
     public void getOnlineRollLAN(){
         super.post(new Runnable() {
             @Override
