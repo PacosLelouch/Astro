@@ -128,8 +128,8 @@ public class Coordinate {
         rollImg = new BitmapDrawable[7];
         BitmapFactory.Options opt = new BitmapFactory.Options();
         opt.inPreferredConfig = Bitmap.Config.RGB_565;
-        opt.inPurgeable = true;
-        opt.inInputShareable = true;
+        //opt.inPurgeable = true;
+        //opt.inInputShareable = true;
         for(int i = 0; i < chessImgSrc.length; ++i) {
             for(int j = 0; j < chessImgSrc[i].length; ++j){
                 InputStream is = gameActivity.getResources().openRawResource(chessImgSrc[i][j]);

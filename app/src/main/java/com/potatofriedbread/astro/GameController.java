@@ -90,7 +90,7 @@ public class GameController {
                 final ImageView image = images[i][j];
                 final int startY = Value.STARTS_Y[i][j];
                 final int startX = Value.STARTS_X[i][j];
-                final int player = i;
+                final int player = i, num = j;
                 image.post(new Runnable() {
                     @Override
                     public void run() {
@@ -107,6 +107,7 @@ public class GameController {
                         image.setOnClickListener(new View.OnClickListener() {
                             @Override
                             public void onClick(View view) {
+                                Log.d("TEST Choreographer", "Click chess, " + Value.PLAYER_COLOR[player] + " " + num);
                                 Chess chess = viewToChess(player, view);
                                 go(chess);
                             }
