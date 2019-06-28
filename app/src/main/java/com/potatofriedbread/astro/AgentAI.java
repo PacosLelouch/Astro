@@ -24,7 +24,7 @@ public class AgentAI {
         Chess[] yourChess = chessList[player];
         if(Value.TAKE_OFF_NUM.contains(rollNum)){
             for(int i = 0; i < yourChess.length; ++i){
-                if(!yourChess[i].isFlying()){
+                if(!yourChess[i].isFlying() && !yourChess[i].isCompleted()){
                     return yourChess[i];
                 }
             }
@@ -56,7 +56,7 @@ public class AgentAI {
         Chess[] yourChess = chessList[player];
         if(Value.TAKE_OFF_NUM.contains(rollNum)){
             for(int i = 0; i < yourChess.length; ++i){
-                if(!yourChess[i].isFlying()){
+                if(!yourChess[i].isFlying() && !yourChess[i].isCompleted()){
                     return yourChess[i];
                 }
             }
@@ -109,7 +109,7 @@ public class AgentAI {
         }
         if(Value.TAKE_OFF_NUM.contains(rollNum)){
             for(int i = 0; i < yourChess.length; ++i){
-                if(!yourChess[i].isFlying()){
+                if(!yourChess[i].isFlying()  && !yourChess[i].isCompleted()){
                     return yourChess[i];
                 }
             }

@@ -352,7 +352,7 @@ public class GameController {
                     audioPlayer.playFlyAudio();
                     animationPlayer.playTakeOffAnimator(chess);
                     Log.d("TEST", "Take off.");
-                } else {
+                } else if(!chess.isCompleted()) {
                     int from = chess.getNowPos();
                     chess.move(rollNum);
                     audioPlayer.playFlyAudio();
@@ -360,13 +360,15 @@ public class GameController {
                     Log.d("TEST", "RollNum = " + rollNum + ", moving complete.");
                 }
             } else {
-                int from = chess.getNowPos();
-                chess.move(rollNum);
-                audioPlayer.playFlyAudio();
-                animationPlayer.playMoveAnimation(chess, from, rollNum);
-                Log.d("TEST", "RollNum = " + rollNum + ", moving complete.");
+                if(!chess.isCompleted()) {
+                    int from = chess.getNowPos();
+                    chess.move(rollNum);
+                    audioPlayer.playFlyAudio();
+                    animationPlayer.playMoveAnimation(chess, from, rollNum);
+                    Log.d("TEST", "RollNum = " + rollNum + ", moving complete.");
+                }
             }
-            hideMovable();
+            displayChessNormal();
         } else{
             Log.d("TEST", "Please roll first.");
         }
@@ -584,7 +586,7 @@ public class GameController {
         }
     }
 
-    private void hideMovable(){
+    private void displayChessNormal(){
         for(int i = 0; i < chessList[whoseTurn].length; ++i){
             Chess chess = chessList[whoseTurn][i];
             if(!chess.isCompleted()) {

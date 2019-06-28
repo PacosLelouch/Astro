@@ -99,6 +99,7 @@ public class Chess implements Serializable {
         nowPos = 0;
         setFlying(false);
         setCompleted(true);
+        img.setImageResource(R.drawable.complete);
     }
 
     public void takeOff(){
