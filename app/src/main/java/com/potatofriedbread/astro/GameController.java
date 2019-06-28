@@ -29,7 +29,7 @@ public class GameController {
             initGame();
         } catch (Exception e){
             e.printStackTrace();
-            Log.d("TEST", "Fail to initialize game.");
+            Log.d("TEST Choreographer", "Fail to initialize game.");
         }*/
     }
 
@@ -48,10 +48,10 @@ public class GameController {
             lanHandler = new LANHandler(this);
             serverHandler = new ServerHandler(this);
             animationPlayer = new AnimationPlayer(this);
-            Log.d("TEST", "Initialization complete.");
+            Log.d("TEST Choreographer", "Initialization complete.");
         } catch (Exception e){
             e.printStackTrace();
-            Log.d("TEST", "Fail to initialize game.");
+            Log.d("TEST Choreographer", "Fail to initialize game.");
         }
     }
 
@@ -111,7 +111,7 @@ public class GameController {
                         image.setLayoutParams(layoutParams);
                         image.setTranslationY(Coordinate.getInstance().mapToScreenY(startY));
                         image.setTranslationX(Coordinate.getInstance().mapToScreenX(startX));
-                        /*Log.d("TEST", "chess: " + image.getX() + " " + image.getY() + " " +
+                        /*Log.d("TEST Choreographer", "chess: " + image.getX() + " " + image.getY() + " " +
                                 image.getWidth() + " " + image.getHeight());*/
                         image.setOnClickListener(new View.OnClickListener() {
                             @Override
@@ -178,7 +178,7 @@ public class GameController {
             configHelper.changePlayerType(player, Value.LOCAL_HUMAN);
         }
         initWhoseTurn();
-        Log.d("TEST", "Game start.");
+        Log.d("TEST Choreographer", "Game start.");
         turnStart();
     }
 
@@ -187,7 +187,7 @@ public class GameController {
         gameActivity.displayPlayerPrompt(whoseTurn);
         setState(Value.STATE_ROLL);
         resetRoll();
-        Log.d("TEST", Value.PLAYER_COLOR[whoseTurn] + "'s turn started.");
+        Log.d("TEST Choreographer", Value.PLAYER_COLOR[whoseTurn] + "'s turn started.");
         if(configHelper.getGameType() == Value.LOCAL){
             if(configHelper.getPlayerType(whoseTurn) == Value.AI){
                 controlHandler.getAIRoll();
@@ -212,7 +212,7 @@ public class GameController {
     }
 
     public void turnEnd(){
-        Log.d("TEST", Value.PLAYER_COLOR[whoseTurn] + "'s turn end.");
+        Log.d("TEST Choreographer", Value.PLAYER_COLOR[whoseTurn] + "'s turn end.");
         if(configHelper.getGameType() == Value.LOCAL){
             // No operation.
         } else if(configHelper.getGameType() == Value.ONLINE_LAN) {
@@ -227,7 +227,7 @@ public class GameController {
         if(!Value.COMBO_NUM.contains(rollNum)){
             nextTurn();
         } else{
-            Log.d("TEST", "Another chance.");
+            Log.d("TEST Choreographer", "Another chance.");
             turnStart();
         }
     }
@@ -254,15 +254,15 @@ public class GameController {
     public boolean restartGame(){
         try{
             initChessPosAll();
-            Log.d("TEST", "Reset chess.");
+            Log.d("TEST Choreographer", "Reset chess.");
             configHelper.reset();
-            Log.d("TEST", "Reset helper.");
+            Log.d("TEST Choreographer", "Reset helper.");
             //TODO complete arrow.
             rollNum = 0;
             //gameStart(configHelper.getGameType(), configHelper.getHostPlayer());
         } catch(Exception e){
             e.printStackTrace();
-            Log.d("TEST", "Fail to restart game.");
+            Log.d("TEST Choreographer", "Fail to restart game.");
             return false;
         }
         return true;
@@ -270,8 +270,8 @@ public class GameController {
 
     public void initWhoseTurn(){
         if(configHelper.getGameType() == Value.LOCAL) {
-            setWhoseTurn(Value.RED); // TODO: Just for test.
-            //setWhoseTurn((int)(Math.random() * chessList.length));
+            //setWhoseTurn(Value.RED); // Just for test.
+            setWhoseTurn((int)(Math.random() * chessList.length));
         } else if(configHelper.getGameType() == Value.ONLINE_LAN){
             if(configHelper.isHost()){
                 setWhoseTurn((int)(Math.random() * chessList.length));
@@ -314,17 +314,17 @@ public class GameController {
     public boolean canMove(){
         if(Value.TAKE_OFF_NUM.contains(rollNum)){
             //TextView
-            Log.d("TEST", Value.PLAYER_COLOR[whoseTurn] + " takes off.");
+            Log.d("TEST Choreographer", Value.PLAYER_COLOR[whoseTurn] + " takes off.");
             return true;
         }
         for(int i = 0; i < 4; ++i){
             Chess chess = chessList[whoseTurn][i];
             if(chess.isFlying()){
-                Log.d("TEST", Value.PLAYER_COLOR[whoseTurn] + " can move planes.");
+                Log.d("TEST Choreographer", Value.PLAYER_COLOR[whoseTurn] + " can move planes.");
                 return true;
             }
         }
-        Log.d("TEST", Value.PLAYER_COLOR[whoseTurn] + " cannot move anything.");
+        Log.d("TEST Choreographer", Value.PLAYER_COLOR[whoseTurn] + " cannot move anything.");
         return false;
     }
 
@@ -333,31 +333,35 @@ public class GameController {
             return;
         }
         if(whoseTurn != chess.getPlayer()){
-            Log.d("TEST", "Not your turn.");
+            Log.d("TEST Choreographer", "Not your turn.");
             showToastShort("Not your turn.");
             return;
         }
         if(state != Value.STATE_MOVE_CHESS){
-            Log.d("TEST", "You cannot move now.");
+            Log.d("TEST Choreographer", "You cannot move now.");
             showToastShort("You cannot move now.");
             return;
         }
         if(rollNum != 0){
             if (Value.TAKE_OFF_NUM.contains(rollNum)) {
                 if (chess == null) {
-                    Log.d("TEST", "You didn't select any chess.");
+                    Log.d("TEST Choreographer", "You didn't select any chess.");
                     return;
                 } else if (!chess.isFlying() && !chess.isCompleted()) {
                     chess.takeOff();
                     audioPlayer.playFlyAudio();
                     animationPlayer.playTakeOffAnimator(chess);
-                    Log.d("TEST", "Take off.");
+                    Log.d("TEST Choreographer", "Take off.");
                 } else if(!chess.isCompleted()) {
                     int from = chess.getNowPos();
                     chess.move(rollNum);
                     audioPlayer.playFlyAudio();
                     animationPlayer.playMoveAnimation(chess, from, rollNum);
-                    Log.d("TEST", "RollNum = " + rollNum + ", moving complete.");
+                    Log.d("TEST Choreographer", "RollNum = " + rollNum + ", moving complete.");
+                } else{
+                    Log.d("TEST Choreographer", "It's completed.");
+                    showToastShort("It's completed.");
+                    return;
                 }
             } else {
                 if(!chess.isCompleted()) {
@@ -365,12 +369,16 @@ public class GameController {
                     chess.move(rollNum);
                     audioPlayer.playFlyAudio();
                     animationPlayer.playMoveAnimation(chess, from, rollNum);
-                    Log.d("TEST", "RollNum = " + rollNum + ", moving complete.");
+                    Log.d("TEST Choreographer", "RollNum = " + rollNum + ", moving complete.");
+                } else{
+                    Log.d("TEST Choreographer", "It's completed.");
+                    showToastShort("It's completed.");
+                    return;
                 }
             }
             displayChessNormal();
         } else{
-            Log.d("TEST", "Please roll first.");
+            Log.d("TEST Choreographer", "Please roll first.");
         }
         //turnEnd(); // To async.
     }
@@ -394,7 +402,7 @@ public class GameController {
     public void chessFly(Chess chess, int jumpNum){
         int from = chess.getNowPos();
         chess.move(12);
-        Log.d("TEST", "fly");
+        Log.d("TEST Choreographer", "fly");
         int to = chess.getNowPos();
         audioPlayer.playFlyAudio();
         animationPlayer.playJumpAnimation(chess, from, to, jumpNum);
@@ -404,7 +412,7 @@ public class GameController {
     public void chessJump(Chess chess, int jumpNum){
         int from = chess.getNowPos();
         chess.move(4);
-        Log.d("TEST", "jump");
+        Log.d("TEST Choreographer", "jump");
         int to = chess.getNowPos();
         audioPlayer.playFlyAudio();
         animationPlayer.playJumpAnimation(chess, from, to, jumpNum);
@@ -420,7 +428,7 @@ public class GameController {
             }
         }
         if(flag){
-            Log.d("TEST", Value.PLAYER_COLOR[whoseTurn] + " wins the game.");
+            Log.d("TEST Choreographer", Value.PLAYER_COLOR[whoseTurn] + " wins the game.");
             //TextView
             try{
                 Thread.sleep(3000);
@@ -441,7 +449,7 @@ public class GameController {
             for(int j = 0; j < chessList[i].length; ++j){
                 Chess targetChess = chessList[i][j];
                 if(chess.getX() == targetChess.getX() && chess.getY() == targetChess.getY()){
-                    Log.d("TEST", "A chess of player " + Value.PLAYER_COLOR[targetChess.getPlayer()] + " is killed.");
+                    Log.d("TEST Choreographer", "A chess of player " + Value.PLAYER_COLOR[targetChess.getPlayer()] + " is killed.");
                     int from = targetChess.getNowPos();
                     targetChess.killed();
                     audioPlayer.playKillAudio();
@@ -472,7 +480,7 @@ public class GameController {
                 return chess;
             }
         }
-        Log.d("TEST", "You didn't click any chess.");
+        Log.d("TEST Choreographer", "You didn't click any chess.");
         return null;
     }
 
@@ -562,7 +570,7 @@ public class GameController {
 
     public void setGameActivity(GameActivity value){
         gameActivity = value;
-        Log.d("TEST","gameActivity: " + gameActivity.toString());
+        Log.d("TEST Choreographer","gameActivity: " + gameActivity.toString());
     }
 
     public GameActivity getGameActivity() {

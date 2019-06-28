@@ -82,10 +82,10 @@ public class Coordinate {
                                 }
                             }
                         });
-                        Log.d("TEST", "Measured: " + leftX + " " + topY + " " + mapWidth + " " + mapHeight);
-                        Log.d("TEST", "ChessWidth: " + chessWidth);
+                        Log.d("TEST Choreographer", "Measured: " + leftX + " " + topY + " " + mapWidth + " " + mapHeight);
+                        Log.d("TEST Choreographer", "ChessWidth: " + chessWidth);
                         /*
-                        Log.d("TEST", "Image: " + imageView.getWidth() + " " + imageView.getHeight());*/
+                        Log.d("TEST Choreographer", "Image: " + imageView.getWidth() + " " + imageView.getHeight());*/
                         GameController.getInstance().loadChess();
                         GameController.getInstance().decreaseLoadCount();
                         if(GameController.getInstance().noLoadingLeft()){

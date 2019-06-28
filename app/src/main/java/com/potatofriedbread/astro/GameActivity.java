@@ -36,7 +36,7 @@ public class GameActivity extends AppCompatActivity {
             GameController.getInstance().initGame();
         } catch (Exception e){
             e.printStackTrace();
-            Log.d("TEST", "Fail to initialize game.");
+            Log.d("TEST Choreographer", "Fail to initialize game.");
         }
         localPlayer = Value.RED; // 以后是在房间里选
 
@@ -124,17 +124,17 @@ public class GameActivity extends AppCompatActivity {
         ObjectAnimator.ofFloat(roll, "translationX", 0f, 600f)
                 .setDuration(1000).start();*/
         if(gameController.getWhoseTurn() != localPlayer) {
-            Log.d("TEST", "Not your turn to roll.");
+            Log.d("TEST Choreographer", "Not your turn to roll.");
         } else if(gameController.getState() != Value.STATE_ROLL){
-            Log.d("TEST", "Not the state to roll.");
+            Log.d("TEST Choreographer", "Not the state to roll.");
         } else{
             gameController.roll();
-            Log.i("TEST", "Roll.");
+            Log.i("TEST Choreographer", "Roll.");
         }
     }
 
     private void setCharge(){
-        Log.i("TEST", "Charge.");
+        Log.i("TEST Choreographer", "Charge.");
         int playerType = gameController.getConfigHelper().getPlayerType(localPlayer);
         if(playerType == Value.AI){
             gameController.getConfigHelper().changePlayerType(localPlayer, Value.LOCAL_HUMAN);

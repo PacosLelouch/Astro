@@ -86,7 +86,7 @@ public class AnimationPlayer{
             public void onAnimationEnd(Animator animation) {
                 super.onAnimationEnd(animation);
                 chess.moveImg(endX, endY);
-                Log.d("TEST", "Take off animation complete.");
+                Log.d("TEST Choreographer", "Take off animation complete.");
                 gameController.decreaseAnimationCount();
                 gameController.turnEnd();
             }
@@ -135,7 +135,7 @@ public class AnimationPlayer{
                 super.onAnimationEnd(animation);
                 gameController.decreaseAnimationCount();
                 chess.moveImg(endX, endY);
-                Log.d("TEST", "Moving animation complete.");
+                Log.d("TEST Choreographer", "Moving animation complete.");
                 gameController.chessStatusJudge(chess);
                 if(gameController.noAnimationLeft()){
                     gameController.turnEnd();
