@@ -1,10 +1,12 @@
 package com.potatofriedbread.astro;
 
+import android.content.Context;
 import android.util.Log;
-import android.view.View;
 import android.widget.ImageView;
 import android.widget.RelativeLayout;
 import android.widget.Toast;
+
+import java.util.Stack;
 
 public class GameController {
 
@@ -20,27 +22,31 @@ public class GameController {
     private Chess[][] chessList;
     //private int[] rollsId;
     private Toast toast;
+    private Stack<Context> contextStack;
+    private boolean playing;
 
     private static final GameController instance = new GameController();
 
     private GameController(){
         /*
         try {
-            initGame();
+            initGameController();
         } catch (Exception e){
             e.printStackTrace();
             Log.d("TEST Choreographer", "Fail to initialize game.");
         }*/
+        this.contextStack = new Stack<Context>();
     }
 
     //可能在开头画面新起一个线程加载资源？
-    public void initGame() throws Exception{
+    public void initGameController() throws Exception{
         try{
             //completeArrowUsed = 0;
             setState(Value.STATE_CANNOT_MOVE);
             animationLeft = 0;
             loadLeft = 0;
             rollNum = 0;
+            playing = false;
             loadResources();
             //Do not load chess.
             controlHandler = new ControlHandler(this);
@@ -170,11 +176,15 @@ public class GameController {
             configHelper.changePlayerType(player, Value.LOCAL_HUMAN);
         }
         initWhoseTurn();
+        setPlaying(true);
         Log.d("TEST Choreographer", "Game start.");
         turnStart();
     }
 
     public void turnStart(){
+        if(!isPlaying()){
+            return;
+        }
         showToastShort(Value.PLAYER_COLOR[whoseTurn] + "'s turn.");
         gameActivity.displayPlayerPrompt(whoseTurn);
         setState(Value.STATE_ROLL);
@@ -244,14 +254,15 @@ public class GameController {
         animationPlayer.playRollAnimation(rollNum);
     }
 
-    public boolean restartGame(){
+    public boolean resetGame(){
         try{
             initChessPosAll();
+
             Log.d("TEST Choreographer", "Reset chess.");
             configHelper.reset();
             Log.d("TEST Choreographer", "Reset helper.");
-            //TODO complete arrow.
             rollNum = 0;
+            initWhoseTurn();
             //gameStart(configHelper.getGameType(), configHelper.getHostPlayer());
         } catch(Exception e){
             e.printStackTrace();
@@ -428,8 +439,9 @@ public class GameController {
             Log.d("TEST Choreographer", Value.PLAYER_COLOR[whoseTurn] + " wins the game.");
             //TextView
             try{
+                setPlaying(false);
                 //Thread.sleep(3000);
-                //restartGame();
+                //resetGame();
                 return true;
             } catch(Exception e){
                 e.printStackTrace();
@@ -485,7 +497,7 @@ public class GameController {
         if(toast != null){
             toast.cancel();
         }
-        toast = Toast.makeText(gameActivity, text, Toast.LENGTH_SHORT);
+        toast = Toast.makeText(getContext(), text, Toast.LENGTH_SHORT);
         toast.show();
     }
 
@@ -563,8 +575,21 @@ public class GameController {
     }
 
     public void setGameActivity(GameActivity value){
+        pushContext(value);
         gameActivity = value;
         Log.d("TEST Choreographer","gameActivity: " + gameActivity.toString());
+    }
+
+    public void pushContext(Context context){
+        contextStack.push(context);
+    }
+
+    public void popContext(){
+        contextStack.pop();
+    }
+
+    public Context getContext(){
+        return contextStack.peek();
     }
 
     public GameActivity getGameActivity() {
@@ -573,6 +598,14 @@ public class GameController {
 
     public static GameController getInstance() {
         return instance;
+    }
+
+    public boolean isPlaying(){
+        return playing;
+    }
+
+    public void setPlaying(boolean value){
+        playing = value;
     }
 
     private void displayMovable(){

@@ -29,12 +29,13 @@ public class GameActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         //加上其他Activity之后，这个函数会放在其他地方
+        /*
         try {
-            GameController.getInstance().initGame();
+            GameController.getInstance().initGameController();
         } catch (Exception e){
             e.printStackTrace();
             Log.d("TEST Choreographer", "Fail to initialize game.");
-        }
+        }*/
         localPlayer = Value.RED; // 以后是在房间里选
 
         super.onCreate(savedInstanceState);
@@ -59,6 +60,13 @@ public class GameActivity extends AppCompatActivity {
                 onePlay();
             }
         });
+        roll.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                gameController.showToastShort("What's up? Please roll by ROLL button.\nOkay, I will help you roll.");
+                onePlay();
+            }
+        });
         charge.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -67,7 +75,9 @@ public class GameActivity extends AppCompatActivity {
         });
         gameController = GameController.getInstance();
         gameController.setGameActivity(this);
-        Coordinate.createInstance(this);
+        //if(Coordinate.getInstance() == null){
+            Coordinate.createInstance(this);
+        //}
         coordinate = Coordinate.getInstance();
     }
 
@@ -84,10 +94,10 @@ public class GameActivity extends AppCompatActivity {
                 //也许还能把玩家自动设为托管
                 finish();
             case R.id.setting:
-                Toast.makeText(this, "setting", Toast.LENGTH_SHORT).show();
+                gameController.showToastShort("setting");
                 break;
             case R.id.music:
-                Toast.makeText(this, "music", Toast.LENGTH_SHORT).show();
+                gameController.showToastShort("music");
                 break;
         }
         return super.onOptionsItemSelected(item);
@@ -96,14 +106,20 @@ public class GameActivity extends AppCompatActivity {
     @Override
     protected void onDestroy(){
         super.onDestroy();
+        gameController.setPlaying(false);
+        gameController.popContext();
         coordinate = null;
     }
 
     public ImageView getMap(){
         return map;
     }
-    public ImageView getRoll() { return roll; }
-    public Toolbar getToolbar() { return toolbar; }
+    public ImageView getRoll() {
+        return roll;
+    }
+    public Toolbar getToolbar() {
+        return toolbar;
+    }
 
     private void onePlay(){
         //TODO
@@ -143,6 +159,10 @@ public class GameActivity extends AppCompatActivity {
     }
 
     public void gameStart(){
+        if(GameController.getInstance().isPlaying()){
+            gameController.showToastShort("Game resume.");
+            return;
+        }
         gameController.showToastShort("Game start.");
         gameController.gameStart(Value.LOCAL, localPlayer);
         for(int i = 0; i < playerView.length; ++i){
