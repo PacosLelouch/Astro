@@ -1,6 +1,7 @@
 package com.potatofriedbread.astro;
 
 import android.util.Log;
+import android.view.View;
 import android.widget.ImageView;
 
 import java.io.Serializable;
@@ -18,10 +19,18 @@ public class Chess implements Serializable {
     private ImageView img;
 
     // Load chess image.
-    public Chess(int player, int chessNum, ImageView img){
+    public Chess(final int player, final int chessNum, ImageView img){
         this.player = player;
         this.chessNum = chessNum;
         this.img = img;
+        img.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Log.d("TEST Choreographer", "Click chess, " + Value.PLAYER_COLOR[player] + " " + chessNum);
+                Chess chess = Chess.this;
+                GameController.getInstance().go(chess);
+            }
+        });
         reset();
     }
 

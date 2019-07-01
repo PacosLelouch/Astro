@@ -104,14 +104,14 @@ public class GameController {
                         image.setTranslationX(Coordinate.getInstance().mapToScreenX(startX));
                         /*Log.d("TEST Choreographer", "chess: " + image.getX() + " " + image.getY() + " " +
                                 image.getWidth() + " " + image.getHeight());*/
-                        image.setOnClickListener(new View.OnClickListener() {
+                        /*image.setOnClickListener(new View.OnClickListener() {
                             @Override
                             public void onClick(View view) {
                                 Log.d("TEST Choreographer", "Click chess, " + Value.PLAYER_COLOR[player] + " " + num);
                                 Chess chess = viewToChess(player, view);
                                 go(chess);
                             }
-                        });
+                        });*/
                         decreaseLoadCount();
                         initChessPosAll();
                         if(noLoadingLeft()){
@@ -233,6 +233,7 @@ public class GameController {
         rollNum = (int)(Math.random() * 6) + 1;
         setState(Value.STATE_CANNOT_MOVE);
         animationPlayer.playRollAnimation(rollNum);
+        Log.d("TEST Choreographer", "rollNum = " + rollNum);
         //TextView's operation
         //下面的代码已经放animation的onAnimationEnd
     }
@@ -356,15 +357,19 @@ public class GameController {
                     return;
                 }
             } else {
-                if(!chess.isCompleted()) {
+                if(chess.isFlying() && !chess.isCompleted()) {
                     int from = chess.getNowPos();
                     chess.move(rollNum);
                     audioPlayer.playFlyAudio();
                     animationPlayer.playMoveAnimation(chess, from, rollNum);
                     Log.d("TEST Choreographer", "RollNum = " + rollNum + ", moving complete.");
-                } else{
+                } else if(chess.isCompleted()){
                     Log.d("TEST Choreographer", "It's completed.");
                     showToastShort("It's completed.");
+                    return;
+                } else{
+                    Log.d("TEST Choreographer", "Not the number to take off.");
+                    showToastShort("Not the number to take off.");
                     return;
                 }
             }
@@ -423,8 +428,8 @@ public class GameController {
             Log.d("TEST Choreographer", Value.PLAYER_COLOR[whoseTurn] + " wins the game.");
             //TextView
             try{
-                Thread.sleep(3000);
-                restartGame();
+                //Thread.sleep(3000);
+                //restartGame();
                 return true;
             } catch(Exception e){
                 e.printStackTrace();
@@ -464,7 +469,7 @@ public class GameController {
             }
         }
     }
-
+    /*/
     public Chess viewToChess(int player, View view){
         for(int i = 0; i < chessList[player].length; ++i){
             Chess chess = chessList[player][i];
@@ -475,7 +480,7 @@ public class GameController {
         Log.d("TEST Choreographer", "You didn't click any chess.");
         return null;
     }
-
+    */
     public void showToastShort(String text){
         if(toast != null){
             toast.cancel();
@@ -530,6 +535,7 @@ public class GameController {
     }
 
     public void increaseAnimationCount(){
+        setState(Value.STATE_CANNOT_MOVE);
         animationLeft++;
         Log.d("TEST_ANIMATION", animationLeft + ", increase.");
     }
