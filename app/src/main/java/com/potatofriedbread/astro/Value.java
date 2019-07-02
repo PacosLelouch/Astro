@@ -4,6 +4,13 @@ import java.util.List;
 import java.util.Arrays;
 
 public class Value {
+
+    static final int msg_udp_update = 0x222;
+    static final int msg_list_clear = 0x223;
+    static final int broadcast_port = 10086;
+    static final String broadcast_address = "224.0.0.1";
+    static final int tcp_port = 10087;
+
     static final int RED = 0;
     static final int YELLOW = 1;
     static final int BLUE = 2;

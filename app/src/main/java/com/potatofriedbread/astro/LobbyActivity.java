@@ -1,8 +1,10 @@
 package com.potatofriedbread.astro;
 
+import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.Message;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
@@ -19,26 +21,36 @@ import android.widget.Toast;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Timer;
+import java.util.TimerTask;
+import java.util.concurrent.ScheduledThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
 public class LobbyActivity extends AppCompatActivity {
 
-    //private Button musicButton;
-    //private MediaPlayer myMediaPlayer;
     private GridView gridView;
-    ArrayList<Map<String, Object>> list;
     private Toolbar toolbar;
     private Button addRoom;
     private GameController gameController;
+    private ArrayList<Map<String, Object>> mData;
+    private SimpleAdapter mRoomListAdapter;
+
+    private final Timer timer = new Timer();
+    private TimerTask task;
+
+    private static String[] RoomState = {"等待中", "游戏中"};
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_room);
+        setContentView(R.layout.activity_lobby);
         gridView = findViewById(R.id.gridview);
         toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
         ActionBar actionBar = getSupportActionBar();
         actionBar.setDisplayHomeAsUpEnabled(false);
+
+        mData = new ArrayList<>();
 
         gameController = GameController.getInstance();
         gameController.pushContext(this);
@@ -49,11 +61,6 @@ public class LobbyActivity extends AppCompatActivity {
             e.printStackTrace();
             Log.d("TEST Choreographer", "Fail to initialize game.");
         }
-        //localPlayer = Value.RED; // 以后是在房间里选，不过可能这个要改成静态变量？
-
-        //加载房间音乐，放initGame了。
-        //myMediaPlayer = MediaPlayer.create(LobbyActivity.this, R.raw.musicplay);
-        // myMediaPlayer.prepareAsync();
 
         //创建房间
         addRoom = findViewById(R.id.addRoom);
@@ -61,43 +68,103 @@ public class LobbyActivity extends AppCompatActivity {
             @Override
             public void onClick(View view) {
                 Toast.makeText(LobbyActivity.this,"addRoom",Toast.LENGTH_SHORT).show();
+                Intent intent = new Intent();
+                Bundle bundle = new Bundle();
+                bundle.putString("hostName","testinghost");
+                intent.setAction("com.potatofriedbread.astro.room");
+                intent.putExtras(bundle);
+                startActivity(intent);
             }
         });
 
-        // 这个房间总数应该是查询得到的，这里先设成7间
-        // int rooms
-        int rooms = 8;
-        String[] RoomState = {"游戏中", "等待中"};
-        String[] states = new String[rooms];        //房间状态
-        int[] pics = new int[rooms];                //房间图标
-        String[] names = new String[rooms];         //房间名称
-        String[] persons = new String[rooms];       //房间人数
+        // 用于接收udp广播的handler
+        final Handler handler_for_udpReceive = new Handler() {
+            @Override
+            public void handleMessage(Message msg) {
+                super.handleMessage(msg);
+                switch(msg.what){
+                    case Value.msg_list_clear:
+                        mData.clear();
+                        mRoomListAdapter.notifyDataSetChanged();
+                        System.out.println("清空");
+                        break;
+                    /* 到udp多播的信息 */
+                    case Value.msg_udp_update:
+                        Bundle data = msg.getData();
+                        String hostIP = data.getString("hostIP");
+                        String roomName = data.getString("roomName");
+                        String roomState = data.getString("roomState");
+                        String roomCurNum = data.getString("roomCurNum");
+                        String roomCapacity = data.getString("roomCapacity");
+                        Boolean exist = false;
+                        Integer index = -1;
+                        for(int i = 0; i < mData.size(); i++){
+                            Map<String, Object> room = mData.get(i);
+                            if(room.get("hostIP").equals(hostIP)){
+                                exist = true;
+                                index = i;
+                                break;
+                            }
+                        }
+                        if(exist){
+                            // 之前有一样的就更新
+                            Map<String, Object> room = mData.get(index);
+                            room.put("roomName", roomName);
+                            room.put("roomCurNum", roomCurNum);
+                            room.put("roomCapacity", roomCapacity);
+                            room.put("roomPeople", roomCurNum + "/" + roomCapacity);
+                            room.put("roomState", Boolean.valueOf(roomState) ? RoomState[1] : RoomState[0]);
+                        }
+                        else{
+                            // 之前没有一样的就插入
+                            Map<String, Object> room = new HashMap<>();
+                            room.put("hostIP", hostIP);
+                            room.put("roomName", roomName);
+                            room.put("roomCurNum", roomCurNum);
+                            room.put("roomCapacity", roomCapacity);
+                            room.put("roomPeople", roomCurNum + "/" + roomCapacity);
+                            room.put("roomState", Boolean.valueOf(roomState) ? RoomState[1] : RoomState[0]);
+                            mData.add(room);
+                        }
+                        mRoomListAdapter.notifyDataSetChanged();
+                        break;
+                }
+            }
+        };
 
-        for(int i=0;i<rooms;i++){
-            states[i] = RoomState[1];
-            pics[i] = R.drawable.home;
-            names[i] = "测试房间" + i;
-            persons[i] = "1/4";
-        }
-        list = new ArrayList<Map<String, Object>>();
-        for (int i = 0; i < names.length; i++) {
-            Map<String, Object> map = new HashMap<String, Object>();
-            map.put("HomePic", pics[i]);
-            map.put("HomeName", names[i]);
-            map.put("HomePeople", persons[i]);
-            map.put("HomeID", states[i]);
-            list.add(map);
-        }
-        SimpleAdapter adapter = new SimpleAdapter(this, list,
-                R.layout.grid_item_list, new String[]{"HomePic", "HomeID", "HomeName", "HomePeople"},
-                new int[]{R.id.HomePic, R.id.HomeID, R.id.HomeName, R.id.HomePeople});
-        gridView.setAdapter(adapter);
+        new udpReceive(handler_for_udpReceive).start();
+
+        task = new TimerTask() {
+            @Override
+            public void run() {
+                // TODO Auto-generated method stub
+                Message message = new Message();
+                message.what = Value.msg_list_clear;
+                handler_for_udpReceive.sendMessage(message);
+            }
+        };
+        timer.schedule(task, 0, 2500);
+
+//        ScheduledThreadPoolExecutor exec = new ScheduledThreadPoolExecutor(5);
+//        exec.scheduleAtFixedRate(new Runnable() {
+//            public void run() {
+//                System.out.println("清空");
+//                mData.clear();
+//                mRoomListAdapter.notifyDataSetChanged();
+//                System.out.println("清空");
+//            }
+//        }, 0, 3, TimeUnit.SECONDS);
+
+        mRoomListAdapter = new SimpleAdapter(this, mData,
+                R.layout.grid_item_list, new String[]{"roomName", "roomState", "roomPeople"},
+                new int[]{R.id.roomName, R.id.roomState, R.id.roomPeople});
+        gridView.setAdapter(mRoomListAdapter);
 
         // 监听gridView item
         gridView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                Toast.makeText(LobbyActivity.this,"Short Click: "+list.get(position).get("HomeName").toString(),Toast.LENGTH_SHORT).show();
+                Toast.makeText(LobbyActivity.this,"Short Click: "+position,Toast.LENGTH_SHORT).show();
             }
         });
     }

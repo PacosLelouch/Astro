@@ -8,17 +8,17 @@
         android:layout_width="60dp"
         android:layout_height="60dp"
         app:srcCompat="@drawable/home"
-        android:id="@+id/HomePic"
+        android:id="@+id/roomPic"
         android:layout_centerInParent="true"
-        android:layout_below="@+id/HomeID"
-        android:layout_alignLeft="@+id/HomeID"
-        android:layout_alignStart="@+id/HomeID" />
+        android:layout_below="@+id/roomState"
+        android:layout_alignLeft="@+id/roomState"
+        android:layout_alignStart="@+id/roomState" />
 
     <TextView
-        android:text="HomeName"
+        android:text="romeName"
         android:layout_width="100dp"
-        android:layout_height="35dp"
-        android:id="@+id/HomeName"
+        android:layout_height="50dp"
+        android:id="@+id/roomName"
         android:background="@drawable/selector"
         android:layout_centerHorizontal="true"
         android:layout_centerVertical="true"
@@ -26,30 +26,30 @@
         android:gravity="center"
         android:textSize="18sp"
         android:layout_alignParentTop="true"
-        android:layout_toRightOf="@+id/HomeID"
-        android:layout_toEndOf="@+id/HomeID" />
+        android:layout_toRightOf="@+id/roomState"
+        android:layout_toEndOf="@+id/roomState" />
 
     <TextView
-        android:text="HomePeople"
+        android:text="romePeople"
         android:layout_height="60dp"
-        android:id="@+id/HomePeople"
+        android:id="@+id/roomPeople"
         android:layout_centerHorizontal="true"
         android:layout_centerVertical="true"
         android:layout_centerInParent="true"
         android:gravity="center"
         android:textSize="20sp"
         android:background="@drawable/selector2"
-        android:layout_below="@+id/HomeID"
-        android:layout_toRightOf="@+id/HomePic"
-        android:layout_toEndOf="@+id/HomePic"
+        android:layout_below="@+id/roomState"
+        android:layout_toRightOf="@+id/roomPic"
+        android:layout_toEndOf="@+id/roomPic"
         android:layout_width="100dp" />
 
     <TextView
-        android:text="HomeID"
+        android:text="romeState"
         android:layout_width="60dp"
-        android:layout_height="35dp"
+        android:layout_height="50dp"
         android:background="@drawable/selector2"
-        android:id="@+id/HomeID"
+        android:id="@+id/roomState"
         android:textSize="18sp"
         android:gravity="center"
         android:layout_alignParentTop="true"
