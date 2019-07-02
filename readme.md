@@ -10,3 +10,24 @@
 
 补充大厅界面作为开始界面，但是界面功能未实现。  
 为方便调试，大厅的设置按钮用于进入游戏界面。 
+
+
+
+## 房间界面
+
+1. client申请连接server
+
+```
+type = VALUE.hello;
+clientName = 客户端nickname;
+```
+
+返回
+
+```
+type = VALUE.hello;
+clientNames = [nickname1, nickname2, nickname3, nickname4]; // 有可能有null
+clientIPs = [ip1, ip2, ip3, ip4];
+
+```
+

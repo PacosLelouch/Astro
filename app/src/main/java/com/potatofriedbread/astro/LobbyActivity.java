@@ -35,7 +35,7 @@ public class LobbyActivity extends AppCompatActivity {
     private ArrayList<Map<String, Object>> mData;
     private SimpleAdapter mRoomListAdapter;
 
-    private final Timer timer = new Timer();
+    private Timer timer = new Timer();
     private TimerTask task;
 
     private static String[] RoomState = {"等待中", "游戏中"};
@@ -70,90 +70,27 @@ public class LobbyActivity extends AppCompatActivity {
                 Toast.makeText(LobbyActivity.this,"addRoom",Toast.LENGTH_SHORT).show();
                 Intent intent = new Intent();
                 Bundle bundle = new Bundle();
-                bundle.putString("hostName","testinghost");
+                bundle.putString("hostIP",NetUtils.getLocalHostIp());
+                bundle.putString("nickname", "房主猪仔");
+                bundle.putBoolean("isHost", true);
                 intent.setAction("com.potatofriedbread.astro.room");
                 intent.putExtras(bundle);
                 startActivity(intent);
             }
         });
 
-        // 用于接收udp广播的handler
-        final Handler handler_for_udpReceive = new Handler() {
-            @Override
-            public void handleMessage(Message msg) {
-                super.handleMessage(msg);
-                switch(msg.what){
-                    case Value.msg_list_clear:
-                        mData.clear();
-                        mRoomListAdapter.notifyDataSetChanged();
-                        System.out.println("清空");
-                        break;
-                    /* 到udp多播的信息 */
-                    case Value.msg_udp_update:
-                        Bundle data = msg.getData();
-                        String hostIP = data.getString("hostIP");
-                        String roomName = data.getString("roomName");
-                        String roomState = data.getString("roomState");
-                        String roomCurNum = data.getString("roomCurNum");
-                        String roomCapacity = data.getString("roomCapacity");
-                        Boolean exist = false;
-                        Integer index = -1;
-                        for(int i = 0; i < mData.size(); i++){
-                            Map<String, Object> room = mData.get(i);
-                            if(room.get("hostIP").equals(hostIP)){
-                                exist = true;
-                                index = i;
-                                break;
-                            }
-                        }
-                        if(exist){
-                            // 之前有一样的就更新
-                            Map<String, Object> room = mData.get(index);
-                            room.put("roomName", roomName);
-                            room.put("roomCurNum", roomCurNum);
-                            room.put("roomCapacity", roomCapacity);
-                            room.put("roomPeople", roomCurNum + "/" + roomCapacity);
-                            room.put("roomState", Boolean.valueOf(roomState) ? RoomState[1] : RoomState[0]);
-                        }
-                        else{
-                            // 之前没有一样的就插入
-                            Map<String, Object> room = new HashMap<>();
-                            room.put("hostIP", hostIP);
-                            room.put("roomName", roomName);
-                            room.put("roomCurNum", roomCurNum);
-                            room.put("roomCapacity", roomCapacity);
-                            room.put("roomPeople", roomCurNum + "/" + roomCapacity);
-                            room.put("roomState", Boolean.valueOf(roomState) ? RoomState[1] : RoomState[0]);
-                            mData.add(room);
-                        }
-                        mRoomListAdapter.notifyDataSetChanged();
-                        break;
-                }
-            }
-        };
 
         new udpReceive(handler_for_udpReceive).start();
 
         task = new TimerTask() {
             @Override
             public void run() {
-                // TODO Auto-generated method stub
                 Message message = new Message();
                 message.what = Value.msg_list_clear;
                 handler_for_udpReceive.sendMessage(message);
             }
         };
         timer.schedule(task, 0, 2500);
-
-//        ScheduledThreadPoolExecutor exec = new ScheduledThreadPoolExecutor(5);
-//        exec.scheduleAtFixedRate(new Runnable() {
-//            public void run() {
-//                System.out.println("清空");
-//                mData.clear();
-//                mRoomListAdapter.notifyDataSetChanged();
-//                System.out.println("清空");
-//            }
-//        }, 0, 3, TimeUnit.SECONDS);
 
         mRoomListAdapter = new SimpleAdapter(this, mData,
                 R.layout.grid_item_list, new String[]{"roomName", "roomState", "roomPeople"},
@@ -164,10 +101,96 @@ public class LobbyActivity extends AppCompatActivity {
         gridView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                Toast.makeText(LobbyActivity.this,"Short Click: "+position,Toast.LENGTH_SHORT).show();
+                Intent intent = new Intent();
+                Bundle bundle = new Bundle();
+                bundle.putString("hostIP",mData.get(position).get("hostIP").toString());
+                bundle.putString("nickname", "大猪仔");
+                bundle.putBoolean("isHost",false);
+                intent.setAction("com.potatofriedbread.astro.room");
+                intent.putExtras(bundle);
+                startActivity(intent);
             }
         });
     }
+
+    @Override
+    public void onRestart(){
+        super.onRestart();
+        Log.e("TAG","调用了onRestart");
+        timer = new Timer();
+        task = new TimerTask() {
+            @Override
+            public void run() {
+                Message message = new Message();
+                message.what = Value.msg_list_clear;
+                handler_for_udpReceive.sendMessage(message);
+            }
+        };
+        timer.schedule(task, 0, 2500);
+    }
+
+    @Override
+    public void onPause(){
+        super.onPause();
+        Log.e("TAG","调用了onPause");
+        task.cancel();
+        timer.cancel();
+    }
+
+    // 用于接收udp广播的handler
+    private final Handler handler_for_udpReceive = new Handler() {
+        @Override
+        public void handleMessage(Message msg) {
+            super.handleMessage(msg);
+            switch(msg.what){
+                case Value.msg_list_clear:
+                    mData.clear();
+                    mRoomListAdapter.notifyDataSetChanged();
+                    System.out.println("清空");
+                    break;
+                /* 到udp多播的信息 */
+                case Value.msg_udp_update:
+                    Bundle data = msg.getData();
+                    String hostIP = data.getString("hostIP");
+                    String roomName = data.getString("roomName");
+                    String roomState = data.getString("roomState");
+                    String roomCurNum = data.getString("roomCurNum");
+                    String roomCapacity = data.getString("roomCapacity");
+                    Boolean exist = false;
+                    Integer index = -1;
+                    for(int i = 0; i < mData.size(); i++){
+                        Map<String, Object> room = mData.get(i);
+                        if(room.get("hostIP").equals(hostIP)){
+                            exist = true;
+                            index = i;
+                            break;
+                        }
+                    }
+                    if(exist){
+                        // 之前有一样的就更新
+                        Map<String, Object> room = mData.get(index);
+                        room.put("roomName", roomName);
+                        room.put("roomCurNum", roomCurNum);
+                        room.put("roomCapacity", roomCapacity);
+                        room.put("roomPeople", roomCurNum + "/" + roomCapacity);
+                        room.put("roomState", Boolean.valueOf(roomState) ? RoomState[1] : RoomState[0]);
+                    }
+                    else{
+                        // 之前没有一样的就插入
+                        Map<String, Object> room = new HashMap<>();
+                        room.put("hostIP", hostIP);
+                        room.put("roomName", roomName);
+                        room.put("roomCurNum", roomCurNum);
+                        room.put("roomCapacity", roomCapacity);
+                        room.put("roomPeople", roomCurNum + "/" + roomCapacity);
+                        room.put("roomState", Boolean.valueOf(roomState) ? RoomState[1] : RoomState[0]);
+                        mData.add(room);
+                    }
+                    mRoomListAdapter.notifyDataSetChanged();
+                    break;
+            }
+        }
+    };
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {

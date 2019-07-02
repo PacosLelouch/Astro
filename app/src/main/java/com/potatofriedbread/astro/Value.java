@@ -5,6 +5,11 @@ import java.util.Arrays;
 
 public class Value {
 
+    static final int msg_room_full = 0x111;
+    static final int msg_shutdown = 0x112;
+
+    static final int type_hello = 1;
+
     static final int msg_udp_update = 0x222;
     static final int msg_list_clear = 0x223;
     static final int broadcast_port = 10086;
