@@ -85,7 +85,7 @@ public class RoomActivity extends AppCompatActivity {
                     mRoom = new JSONObject();
                     try{
                         mRoom.put("hostIP", NetUtils.getLocalHostIp());
-                        mRoom.put("roomName", nickname+"的房间");
+                        mRoom.put("roomName", nickname + "的房间");
                         mRoom.put("roomState", false);
                         mRoom.put("roomCurNum", curNum);
                         mRoom.put("roomCapacity", capacity);
@@ -158,7 +158,7 @@ public class RoomActivity extends AppCompatActivity {
             charge = findViewById(idCharge);
             this.player = player;
             ifUsed = 0;
-            username.setText("[空闲位置]");
+            username.setText("[空位]");
         }
 
         public void changeImage(int index){

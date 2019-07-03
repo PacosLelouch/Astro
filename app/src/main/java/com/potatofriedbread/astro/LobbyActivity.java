@@ -87,7 +87,7 @@ public class LobbyActivity extends AppCompatActivity {
                 Intent intent = new Intent();
                 Bundle bundle = new Bundle();
                 bundle.putString("hostIP",NetUtils.getLocalHostIp());
-                bundle.putString("nickname", "[房主]" + settings.getString("player_name_key", "大猪仔"));
+                bundle.putString("nickname", settings.getString("player_name_key", "大猪仔"));
                 bundle.putBoolean("isHost", true);
                 intent.setAction("com.potatofriedbread.astro.room");
                 intent.putExtras(bundle);
