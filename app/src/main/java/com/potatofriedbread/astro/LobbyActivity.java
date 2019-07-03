@@ -1,10 +1,18 @@
 package com.potatofriedbread.astro;
 
 import android.app.Activity;
+import android.app.AlertDialog;
+import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
+import android.preference.EditTextPreference;
+import android.preference.Preference;
+import android.preference.PreferenceFragment;
+import android.preference.PreferenceManager;
+import android.preference.PreferenceScreen;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
@@ -14,8 +22,11 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.GridView;
+import android.widget.RelativeLayout;
 import android.widget.SimpleAdapter;
+import android.widget.TableLayout;
 import android.widget.Toast;
 
 import java.util.ArrayList;
@@ -40,6 +51,10 @@ public class LobbyActivity extends AppCompatActivity {
 
     private static String[] RoomState = {"等待中", "游戏中"};
 
+    private SharedPreferences settings;
+    private AlertDialog.Builder dialogBuilder;
+    private AlertDialog alertDialog;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -54,6 +69,7 @@ public class LobbyActivity extends AppCompatActivity {
 
         gameController = GameController.getInstance();
         gameController.pushContext(this);
+
         //加载资源
         try {
             gameController.initGameController();
@@ -71,7 +87,7 @@ public class LobbyActivity extends AppCompatActivity {
                 Intent intent = new Intent();
                 Bundle bundle = new Bundle();
                 bundle.putString("hostIP",NetUtils.getLocalHostIp());
-                bundle.putString("nickname", "房主猪仔");
+                bundle.putString("nickname", "[房主]" + settings.getString("player_name_key", "大猪仔"));
                 bundle.putBoolean("isHost", true);
                 intent.setAction("com.potatofriedbread.astro.room");
                 intent.putExtras(bundle);
@@ -104,13 +120,14 @@ public class LobbyActivity extends AppCompatActivity {
                 Intent intent = new Intent();
                 Bundle bundle = new Bundle();
                 bundle.putString("hostIP",mData.get(position).get("hostIP").toString());
-                bundle.putString("nickname", "大猪仔");
+                bundle.putString("nickname", settings.getString("player_name_key", "大猪仔"));
                 bundle.putBoolean("isHost",false);
                 intent.setAction("com.potatofriedbread.astro.room");
                 intent.putExtras(bundle);
                 startActivity(intent);
             }
         });
+        settings = getSharedPreferences("setting", 0);
     }
 
     @Override
@@ -205,6 +222,30 @@ public class LobbyActivity extends AppCompatActivity {
                 finish();
             case R.id.setting:
                 gameController.showToastShort("setting");
+                RelativeLayout settingForm = (RelativeLayout)getLayoutInflater().inflate(R.layout.content_setting, null);
+                ((EditText)settingForm.findViewById(R.id.playerName)).setText(settings.getString("player_name_key", "大猪仔"));
+                dialogBuilder = new AlertDialog.Builder(this);
+                alertDialog = dialogBuilder.setIcon(R.drawable.red)
+                        .setTitle("修改名称")
+                        .setView(settingForm)
+                        .setNegativeButton("取消", new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialogInterface, int i) {
+
+                            }
+                        })
+                        .setPositiveButton("确定", new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialogInterface, int i) {
+                                SharedPreferences.Editor editor = settings.edit();
+                                EditText playerNameText = alertDialog.findViewById(R.id.playerName);
+                                editor.putString("player_name_key", playerNameText.getText().toString());
+                                editor.commit();
+                            }
+                        })
+                        .create();
+                alertDialog.show();
+                /*
                 gameController.showToastShort("For debug, start the game after 3s.");
                 new Handler().postDelayed(new Runnable() {
                     @Override
@@ -213,7 +254,7 @@ public class LobbyActivity extends AppCompatActivity {
                         Intent intent = new Intent(LobbyActivity.this, GameActivity.class);
                         startActivity(intent);
                     }
-                }, 3000);
+                }, 3000);*/
                 break;
             case R.id.music:
                 //if (myMediaPlayer.isPlaying()){

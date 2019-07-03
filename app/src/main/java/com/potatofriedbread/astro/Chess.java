@@ -7,13 +7,8 @@ import android.widget.ImageView;
 import java.io.Serializable;
 
 public class Chess implements Serializable {
-    private static final long serialVersionUID = 1L;/*
-    private static final int[][] imgSrc = {
-            {R.drawable.red, R.drawable.red_light, R.drawable.complete},
-            {R.drawable.yellow, R.drawable.yellow_light, R.drawable.complete},
-            {R.drawable.blue, R.drawable.blue_light, R.drawable.complete},
-            {R.drawable.green, R.drawable.green_light, R.drawable.complete},
-    };*/
+    private static final long serialVersionUID = 1L;
+
     private boolean flying, completed;
     private int nowPos, player, chessNum;
     private ImageView img;
@@ -28,7 +23,7 @@ public class Chess implements Serializable {
             public void onClick(View view) {
                 Log.d("TEST Choreographer", "Click chess, " + Value.PLAYER_COLOR[player] + " " + chessNum);
                 Chess chess = Chess.this;
-                GameController.getInstance().go(chess);
+                GameController.getInstance().goByLocalPlayer(chess);
             }
         });
         reset();
@@ -94,6 +89,10 @@ public class Chess implements Serializable {
 
     public int getNowPos(){
         return nowPos;
+    }
+
+    public void setNowPos(int value){
+        nowPos = value;
     }
 
     public boolean isCompleted(){

@@ -29,6 +29,10 @@ public class tcpClient {
         mHandler = handler;
     }
 
+    public void changeHandler(Handler handler){
+        mHandler = handler;
+    }
+
     public void startConnect(){
         new Thread(new Runnable() {
             @Override
@@ -56,6 +60,10 @@ public class tcpClient {
                                 bundle.putString(key,value);
                             }
                             msg.setData(bundle);
+                            Object whatObj = bundle.get("type");
+                            if(whatObj != null) {
+                                msg.what = Integer.parseInt(whatObj.toString());
+                            }
                             mHandler.sendMessage(msg);
                         }
                         catch (Exception e){

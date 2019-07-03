@@ -30,7 +30,16 @@ public class ControlHandler extends Handler {
         }, 1000);
     }
 
-    public void changeStateToMove(final int rollNum){
+    public void postTurnStart(){
+        super.post(new Runnable() {
+            @Override
+            public void run() {
+                gameController.turnStart();
+            }
+        });
+    }
+
+    public void postChangeStateToMove(final int rollNum){
         super.post(new Runnable() {
             @Override
             public void run() {
