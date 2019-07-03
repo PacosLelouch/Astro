@@ -1,11 +1,15 @@
 package com.potatofriedbread.astro;
 
+import android.util.Pair;
+
 public class AgentAI {
     private static final int type = Value.AI_TYPE[1];
 
-    public static void go(Chess[][] chessList, int player, int rollNum){
+    public static Pair<Integer, Chess> go(Chess[][] chessList, int player, int rollNum){
         Chess chess = chooseAChess(chessList, player, rollNum);
+        int nowPos = chess.getNowPos();
         GameController.getInstance().go(chess);
+        return Pair.create(nowPos, chess);
     }
 
     private static Chess chooseAChess(Chess[][] chessList, int player, int rollNum){

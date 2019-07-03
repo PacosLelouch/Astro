@@ -2,15 +2,16 @@ package com.potatofriedbread.astro;
 
 public class ConfigHelper {
     private int localHumanNum, onlineHumanNum, AINum;
-    private int gameType, hostPlayer;
+    private int gameType, hostPlayer, localPlayer;
     private int playerType[] = new int[4];
     private boolean host;
 
-    public ConfigHelper(int gameType, int hostPlayer){
+    public ConfigHelper(int gameType, int hostPlayer, int localPlayer){
         this.gameType = gameType;
         this.hostPlayer = hostPlayer;
+        this.localPlayer = localPlayer;
         if(gameType == Value.ONLINE_LAN){
-            host = true;
+            host = localPlayer == hostPlayer;
         } else{
             host = false;
         }
@@ -58,6 +59,10 @@ public class ConfigHelper {
 
     public int getHostPlayer(){
         return hostPlayer;
+    }
+
+    public int getLocalPlayer(){
+        return localPlayer;
     }
 
     public void reset(){

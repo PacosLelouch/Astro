@@ -1,32 +1,43 @@
 package com.potatofriedbread.astro;
 
 
-import android.content.Context;
 import android.media.MediaPlayer;
-import android.provider.MediaStore;
 
 public class AudioPlayer {
 
     private GameController gameController;
-    private MediaPlayer myMediaPlayer;
+    private MediaPlayer lobbyMediaPlayer, gameOverMediaPlayer;
 
     public AudioPlayer(GameController gameController){
         this.gameController = gameController;
         //加载房间音乐
-        myMediaPlayer = MediaPlayer.create(gameController.getContext(), R.raw.musicplay);
+        lobbyMediaPlayer = MediaPlayer.create(gameController.getContext(), R.raw.musicplay);
+        //lobbyMediaPlayer.prepareAsync();
+        //加载游戏结束音乐
+        gameOverMediaPlayer = MediaPlayer.create(gameController.getContext(), R.raw.musicgameover);
+        //gameOverMediaPlayer.prepareAsync();
     }
 
     public void playLobbyBGM(){
-        myMediaPlayer.start();
-        myMediaPlayer.setLooping(true);
+        lobbyMediaPlayer.start();
+        lobbyMediaPlayer.setLooping(true);
     }
 
     public void pauseLobbyBGM(){
-        myMediaPlayer.pause();
+        lobbyMediaPlayer.pause();
+    }
+
+    public void playGameOverBGM(){
+        gameOverMediaPlayer.start();
+        gameOverMediaPlayer.setLooping(true);
+    }
+
+    public void pauseGameOverBGM(){
+        gameOverMediaPlayer.pause();
     }
 
     public boolean isPlayingLobbyBGM(){
-        return myMediaPlayer.isPlaying();
+        return lobbyMediaPlayer.isPlaying();
     }
 
     public void playFlyAudio(){

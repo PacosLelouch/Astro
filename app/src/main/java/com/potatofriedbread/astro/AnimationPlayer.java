@@ -7,7 +7,6 @@ import android.animation.TypeEvaluator;
 import android.animation.ValueAnimator;
 import android.util.Log;
 import android.util.Pair;
-import android.view.animation.AnticipateOvershootInterpolator;
 import android.widget.ImageView;
 
 public class AnimationPlayer{
@@ -50,11 +49,11 @@ public class AnimationPlayer{
                 super.onAnimationEnd(animation);
                 gameController.decreaseAnimationCount();
                 roll.setImageDrawable(Coordinate.getInstance().getRollImg(rollNum));
-                ConfigHelper configHelper = gameController.getConfigHelper();
-                int whoseTurn = gameController.getWhoseTurn();
+                //ConfigHelper configHelper = gameController.getConfigHelper();
+                //int whoseTurn = gameController.getWhoseTurn();
                 if(!gameController.canMove())gameController.getControlHandler().postTurnEnd();
                 else{
-                    gameController.getControlHandler().changeStateToMove(rollNum);
+                    gameController.getControlHandler().postChangeStateToMove(rollNum);
                 }
                 gameController.showToastShort("Roll number:" + rollNum);
             }

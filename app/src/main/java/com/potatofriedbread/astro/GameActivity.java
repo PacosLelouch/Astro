@@ -12,11 +12,14 @@ import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
-import android.widget.Toast;
+
+import java.util.ArrayList;
 
 public class GameActivity extends AppCompatActivity {
 
-    private int localPlayer;
+    private int localPlayer, hostPlayer;
+    private ArrayList<Integer> aiList;
+    private String[] nameList;
     private GameController gameController;
     private ImageButton play;
     private ImageButton charge;
@@ -36,10 +39,10 @@ public class GameActivity extends AppCompatActivity {
             e.printStackTrace();
             Log.d("TEST Choreographer", "Fail to initialize game.");
         }*/
-        localPlayer = Value.RED; // 以后是在房间里选
-
+        //localPlayer = Value.RED; // 以后是在房间里选
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_game);
+        getRoomInfo(getIntent().getExtras());
         toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
         ActionBar actionBar = getSupportActionBar();
@@ -106,9 +109,19 @@ public class GameActivity extends AppCompatActivity {
     @Override
     protected void onDestroy(){
         super.onDestroy();
+        if(gameController.getState() == Value.ONLINE_LAN){
+            gameController.getLANHandler().postChangeTypeLAN(localPlayer, Value.AI);
+        }
         gameController.setPlaying(false);
         gameController.popContext();
         coordinate = null;
+    }
+
+    private void getRoomInfo(Bundle bundle){
+        hostPlayer = bundle.getInt("hostPlayer");
+        localPlayer = bundle.getInt("localPlayer");
+        aiList = bundle.getIntegerArrayList("aiList");
+        nameList = bundle.getStringArray("nameList");
     }
 
     public ImageView getMap(){
@@ -122,20 +135,6 @@ public class GameActivity extends AppCompatActivity {
     }
 
     private void onePlay(){
-        //TODO
-        //6张骰子图片的数组
-        /*
-        Resources res = getResources();
-        TypedArray rollImage = res.obtainTypedArray(R.array.roll_images);
-        int len = rollImage.length();
-        int[] rollIds = new int[len];
-        for (int i = 0; i < len; i++){
-            rollIds[i] = rollImage.getResourceId(i, 0);//资源的id
-        }*/
-        //在这里试一下骰子的animation，您可以把它移走zzzz
-        /*
-        ObjectAnimator.ofFloat(roll, "translationX", 0f, 600f)
-                .setDuration(1000).start();*/
         if(gameController.getWhoseTurn() != localPlayer) {
             Log.d("TEST Choreographer", "Not your turn to roll.");
         } else if(gameController.getState() != Value.STATE_ROLL){
@@ -150,12 +149,14 @@ public class GameActivity extends AppCompatActivity {
         Log.i("TEST Choreographer", "Charge.");
         int playerType = gameController.getConfigHelper().getPlayerType(localPlayer);
         if(playerType == Value.AI){
-            gameController.getConfigHelper().changePlayerType(localPlayer, Value.LOCAL_HUMAN);
-            playerView[localPlayer].charge.setText("");
+            gameController.discharge(localPlayer);
         } else if(playerType == Value.LOCAL_HUMAN){
-            gameController.getConfigHelper().changePlayerType(localPlayer, Value.AI);
-            playerView[localPlayer].charge.setText("(托管中)");
+            gameController.charge(localPlayer);
         }
+    }
+
+    public void setPlayerChargeText(int player, String text){
+        playerView[player].charge.setText(text);
     }
 
     public void gameStart(){
@@ -164,10 +165,14 @@ public class GameActivity extends AppCompatActivity {
             return;
         }
         gameController.showToastShort("Game start.");
-        gameController.gameStart(Value.LOCAL, localPlayer);
-        for(int i = 0; i < playerView.length; ++i){
+        if(aiList.size() == 3) {
+            gameController.gameStart(Value.LOCAL, localPlayer, localPlayer, aiList);
+        } else{
+            gameController.gameStart(Value.ONLINE_LAN, hostPlayer, localPlayer, aiList);
+        }
+        for (int i = 0; i < playerView.length; ++i) {
             int playerType = gameController.getConfigHelper().getPlayerType(i);
-            if(playerType == Value.AI) {
+            if (playerType == Value.AI) {
                 playerView[i].charge.setText("(托管中)");
             }
         }
@@ -193,6 +198,7 @@ public class GameActivity extends AppCompatActivity {
             username = findViewById(idUsername);
             charge = findViewById(idCharge);
             this.player = player;
+            username.setText(nameList[player]);
         }
 
         public void changeImage(int index){

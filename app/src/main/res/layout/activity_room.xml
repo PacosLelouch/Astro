@@ -1,12 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<android.support.design.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    android:id="@+id/activity_main"
-    android:orientation="vertical"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".LobbyActivity">
+    tools:context=".RoomActivity">
 
     <android.support.design.widget.AppBarLayout
         android:layout_width="match_parent"
@@ -22,31 +20,6 @@
 
     </android.support.design.widget.AppBarLayout>
 
-    <LinearLayout
-        android:orientation="horizontal"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginLeft="10dp"
-        android:layout_marginRight="10dp"
-        android:layout_marginTop="10dp">
+    <include layout="@layout/content_room"/>
 
-        <Button
-            android:text="创建房间"
-            android:layout_width="0dp"
-            android:textSize="20sp"
-            android:layout_height="70dp"
-            android:id="@+id/addRoom"
-            android:layout_weight="1" />
-    </LinearLayout>
-
-    <GridView
-        android:verticalSpacing="10dp"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:id="@+id/gridview"
-        android:layout_margin="5dp"
-        android:columnWidth="160dp"
-        android:stretchMode="spacingWidthUniform"
-        android:numColumns="2"/>
-
-</LinearLayout>
+</android.support.design.widget.CoordinatorLayout>
