@@ -103,7 +103,7 @@ public class tcpClient {
             @Override
             public void run() {
                 try{
-                    System.out.println("发信了发信了");
+                    System.out.println("发信了");
                     OutputStream os = socket.getOutputStream();
                     os.write(msg.getBytes("utf-8"));
                     os.flush();

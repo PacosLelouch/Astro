@@ -183,7 +183,7 @@ public class tcpServer {
                                     ifUsedList[clientMap.get(socketIP).clientPosition] = false;
                                     clientMap.remove(socketIP);
                                     clientList.remove(socketIP);
-                                    System.out.println("叼你妈"+clientMap.size());
+                                    System.out.println("TEST "+clientMap.size());
                                 }
                             }
                         }
@@ -225,7 +225,7 @@ public class tcpServer {
     public static void shutdown(){
         Map<String, Object> shutdown_msg = new HashMap<>();
         shutdown_msg.put("type", Value.msg_shutdown);
-        System.out.println("叼你妈】"+clientMap.size());
+        System.out.println("TEST "+clientMap.size());
         sendMessageToAll(shutdown_msg.toString());
         for(int i = 0; i < 4; i++){
             if(ifUsedList[i])
@@ -235,7 +235,7 @@ public class tcpServer {
         }
 
         while(true){
-            System.out.println("掉你全家");
+            System.out.println("TEST LOOP");
             int count = 0;
             for(int i = 0; i < 4; i++){
                 if(lastMsg[i] == true)
@@ -255,7 +255,7 @@ public class tcpServer {
         }
         serverThread.stop();
         ifUsedList = new Boolean[]{false, false, false, false};
-        System.out.println("掉你爸爸"+clientMap.size());
+        System.out.println("TEST "+clientMap.size());
     }
 
     public static void sendMessageToAll(final String msg){
