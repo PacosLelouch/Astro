@@ -96,7 +96,7 @@ public class RoomActivity extends AppCompatActivity {
                     }
                     new udpBroadcast(mRoom).start();
                 }
-            }, 0, 2000, TimeUnit.MILLISECONDS);
+            }, 0, 500, TimeUnit.MILLISECONDS);
 
             // 打开tcp服务端
             server = new tcpServer();
