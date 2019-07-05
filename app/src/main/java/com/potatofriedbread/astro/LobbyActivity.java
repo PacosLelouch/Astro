@@ -195,11 +195,11 @@ public class LobbyActivity extends AppCompatActivity {
                         room.put("roomPeople", roomCurNum + "/" + roomCapacity);
                         room.put("roomState", Boolean.valueOf(roomState) ? RoomState[1] : RoomState[0]);
                         mData.add(room);
-                    }
+                    }/*
                     timer.cancel(); // NEW
                     timer = new Timer(); // NEW
                     task = new MyTimerTask();
-                    timer.schedule(task, 2500, 2500); // NEW
+                    timer.schedule(task, 2500, 2500); // NEW*/
                     mRoomListAdapter.notifyDataSetChanged();
                     break;
             }
