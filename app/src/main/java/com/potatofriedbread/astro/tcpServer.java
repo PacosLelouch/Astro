@@ -21,6 +21,10 @@ public class tcpServer {
 
     private static ServerThread serverThread = null;
     private static Map<String, clientStruct> clientMap = new HashMap<>(); // key = ip地址 value = 对应的结构体
+    private static ArrayList<String> clientList = new ArrayList<>(); // item = ip地址
+    private static Boolean[] ifUsedList = new Boolean[]{false, false, false, false};
+    private static int connect_sum = 0;
+    private static Boolean[] lastMsg = new Boolean[]{false, false, false, false};
 
     public static ServerThread getServerThread() {
         return serverThread;
@@ -61,10 +65,6 @@ public class tcpServer {
     public static void setConnect_sum(int connect_sum) {
         tcpServer.connect_sum = connect_sum;
     }
-
-    private static ArrayList<String> clientList = new ArrayList<>(); // item = ip地址
-    private static Boolean[] ifUsedList = new Boolean[]{false, false, false, false};
-    private static int connect_sum = 0;
 
     public static class clientStruct{
         public Socket clientSocket;
@@ -114,17 +114,18 @@ public class tcpServer {
 
                         @Override
                         public void run() {
+                            String socketIP = null;
                             try {
                                 synchronized (this) {
                                     // 在这里考虑到线程总数的计算 也代表着连接手机的数量
                                     connect_sum++;
                                     // 存入到集合和Map中为群发和单独发送做准备
-                                    String string = socket.getInetAddress().toString().substring(1);
-                                    clientList.add(string);
+                                    socketIP = socket.getInetAddress().toString().substring(1);
+                                    clientList.add(socketIP);
                                     clientStruct new_struct = new clientStruct();
 
                                     new_struct.clientSocket = socket;
-                                    new_struct.clientIP = socket.getInetAddress().toString().substring(1);
+                                    new_struct.clientIP = socketIP;
                                     new_struct.clientName = null;
 
                                     for(int i = 0; i < 4; i++){
@@ -134,7 +135,8 @@ public class tcpServer {
                                             break;
                                         }
                                     }
-                                    clientMap.put(string, new_struct);
+
+                                    clientMap.put(socketIP, new_struct);
                                 }
 
                                 // 定义输入输出流
@@ -172,12 +174,16 @@ public class tcpServer {
                             } catch (IOException e) {
                                 e.printStackTrace();
                             } finally {
-                                System.out.println("关闭连接：" + socket.getRemoteSocketAddress().toString());
+                                System.out.println("关闭连接：" + socketIP);
                                 synchronized (this) {
                                     connect_sum--;
-                                    String string = socket.getRemoteSocketAddress().toString();
-                                    clientMap.remove(string);
-                                    clientList.remove(string);
+                                    for(String key: clientMap.keySet()){
+                                        System.out.println(clientMap.get(key).clientIP);
+                                    }
+                                    ifUsedList[clientMap.get(socketIP).clientPosition] = false;
+                                    clientMap.remove(socketIP);
+                                    clientList.remove(socketIP);
+                                    System.out.println("叼你妈"+clientMap.size());
                                 }
                             }
                         }
@@ -217,6 +223,28 @@ public class tcpServer {
     }
 
     public static void shutdown(){
+        Map<String, Object> shutdown_msg = new HashMap<>();
+        shutdown_msg.put("type", Value.msg_shutdown);
+        System.out.println("叼你妈】"+clientMap.size());
+        sendMessageToAll(shutdown_msg.toString());
+        for(int i = 0; i < 4; i++){
+            if(ifUsedList[i])
+                lastMsg[i] = false;
+            else
+                lastMsg[i] = true;
+        }
+
+        while(true){
+            System.out.println("掉你全家");
+            int count = 0;
+            for(int i = 0; i < 4; i++){
+                if(lastMsg[i] == true)
+                    count++;
+            }
+            if(count == 4)
+                break;
+        }
+
         for(clientStruct stru: clientMap.values()){
             try{
                 stru.clientSocket.close();
@@ -227,18 +255,21 @@ public class tcpServer {
         }
         serverThread.stop();
         ifUsedList = new Boolean[]{false, false, false, false};
-        clientMap.clear();
-        clientList.clear();
+        System.out.println("掉你爸爸"+clientMap.size());
     }
 
     public static void sendMessageToAll(final String msg){
-        for(final clientStruct stru:clientMap.values()){
             new Thread(new Runnable() {
                 @Override
                 public void run() {
                     try {
-                        OutputStream os = stru.clientSocket.getOutputStream();
-                        os.write(msg.getBytes("utf-8"));
+                        for(final clientStruct stru:clientMap.values()) {
+                            System.out.println("一共有:" + clientMap.size() + "群发给:" + stru.clientIP + "位置:" + stru.clientPosition);
+                            OutputStream os = stru.clientSocket.getOutputStream();
+                            os.write(msg.getBytes("utf-8"));
+                            System.out.println("群发消息成功");
+                            lastMsg[stru.clientPosition] = true;
+                        }
                     }
                     catch(Exception e){
                         System.out.println("群发消息失败");
@@ -246,7 +277,6 @@ public class tcpServer {
                     }
                 }
             }).start();
-        }
     }
 
     public static Boolean findPosition(String clientIP, String clientName){
@@ -256,6 +286,14 @@ public class tcpServer {
         else
             return false;
     }
+
+    public static Boolean removeClient(String clientIP){
+        if(clientMap.containsKey(clientIP))
+            return false;
+        else
+            return true;
+    }
+
 
     public static void broadcastPosition(){
         Map<String, Object> msg = new HashMap<>();

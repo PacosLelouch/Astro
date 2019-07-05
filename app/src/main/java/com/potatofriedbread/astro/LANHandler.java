@@ -20,33 +20,17 @@ public class LANHandler extends Handler {
         this.gameController = gameController;
         this.operationQueue = new LinkedBlockingQueue<>();
     }
-    /*
-    public void newRoom(){ // 按下后建房，（线程1）发udp广播，（线程2）收tcp连接
-        super.post(new Runnable() {
-            @Override
-            public void run() {
-                //TODO
-            }
-        });
-    }
-
-    public void joinIn(){ // 按下后加房，（线程1）发tcp连接
-        super.post(new Runnable() {
-            @Override
-            public void run() {
-                //TODO
-            }
-        });
-    }*/
 
     public void getOnlineRollLAN(){
         new Thread(){
             @Override
             public void run(){
+                Log.d("TEST LAN", "Online roll LAN.");
                 boolean isExit = false;
                 while(!isExit) {
                     try {
                         Bundle bundle = operationQueue.take();
+                        Log.e("TEST Choreographer","Get online roll LAN Bundle " + bundle.toString());
                         if (bundle != null && "roll".equals(bundle.getString("msgType"))) {
                             final int rollNum = Integer.parseInt(bundle.getString("rollNum"));
                             LANHandler.super.post(new Runnable() {
@@ -57,7 +41,6 @@ public class LANHandler extends Handler {
                             });
                             isExit = true;
                         }
-                        operationQueue.poll();
                     } catch (Exception e) {
                         Log.e("TEST Choreographer", "Fail to get whose turn.");
                         e.printStackTrace();
@@ -69,7 +52,7 @@ public class LANHandler extends Handler {
     }
 
     public void postOnlineRollLAN(){
-        super.post(new Runnable() {
+        super.postDelayed(new Runnable() {
             @Override
             public void run() {
                 HashMap<String, Object> hashMap = new HashMap<>();
@@ -78,17 +61,32 @@ public class LANHandler extends Handler {
                 hashMap.put("rollNum", rollNum);
                 gameController.getClient().sendMsgToServer(hashMap.toString());
             }
-        });
+        }, 0);
+    }
+
+    public void postAIRollLAN(){
+        super.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                HashMap<String, Object> hashMap = new HashMap<>();
+                hashMap.put("msgType", "roll");
+                int rollNum = (int)(Math.random() * 6) + 1;
+                hashMap.put("rollNum", rollNum);
+                gameController.getClient().sendMsgToServer(hashMap.toString());
+            }
+        }, 1000);
     }
 
     public void getOnlineMoveLAN(){
         new Thread(){
             @Override
             public void run(){
+                Log.d("TEST LAN", "Online move LAN.");
                 boolean isExit = false;
                 while(!isExit) {
                     try {
                         Bundle bundle = operationQueue.take();
+                        Log.e("TEST Choreographer","Get online move LAN Bundle " + bundle.toString());
                         if (bundle != null && "move".equals(bundle.getString("msgType"))) {
                             final int player = Integer.parseInt(bundle.getString("player"));
                             final int chessNum = Integer.parseInt(bundle.getString("chessNum"));
@@ -104,7 +102,6 @@ public class LANHandler extends Handler {
                             });
                             isExit = true;
                         }
-                        operationQueue.poll();
                     } catch (Exception e) {
                         Log.e("TEST Choreographer", "Fail to get whose turn.");
                         e.printStackTrace();
@@ -119,14 +116,15 @@ public class LANHandler extends Handler {
         super.postDelayed(new Runnable() {
             @Override
             public void run() {
-                Pair<Integer, Chess> pair = AgentAI.go(gameController.getChessList(), gameController.getWhoseTurn(), rollNum);
-                postOnlineMoveLAN(pair.second.getPlayer(), pair.second.getChessNum(), pair.first);
+                Chess chess = AgentAI.chooseAChess(gameController.getChessList(), gameController.getWhoseTurn(), rollNum);
+                //Pair<Integer, Chess> pair = AgentAI.go(gameController.getChessList(), gameController.getWhoseTurn(), rollNum);
+                postOnlineMoveLAN(chess.getPlayer(), chess.getChessNum(), chess.getNowPos());
             }
         }, 1000);
     }
 
     public void postOnlineMoveLAN(final int player, final int chessNum, final int nowPos){
-        super.post(new Runnable() {
+        super.postDelayed(new Runnable() {
             @Override
             public void run() {
                 HashMap<String, Object> hashMap = new HashMap<>();
@@ -136,50 +134,32 @@ public class LANHandler extends Handler {
                 hashMap.put("nowPos", nowPos);
                 gameController.getClient().sendMsgToServer(hashMap.toString());
             }
-        });
-    }
-    /*
-    public void postHostTurnEndLAN(){
-        super.post(new Runnable() {
-            @Override
-            public void run() {
-                //TODO
-            }
-        });
+        }, 0);
     }
 
-    public void postClientTurnEndLAN(){
-        super.post(new Runnable() {
-            @Override
-            public void run() {
-                //TODO
-            }
-        });
-    }
-    */
     public void postWhoseTurnLAN(final int whoseTurn){
-        super.post(new Runnable() {
+        super.postDelayed(new Runnable() {
             @Override
             public void run() {
                 HashMap<String, Object> hashMap = new HashMap<>();
                 hashMap.put("msgType", "turn");
                 hashMap.put("whoseTurn", whoseTurn);
-                Log.e("TEST", "whose turn send to server. " + whoseTurn);
+                Log.e("TEST LAN", "whose turn send to server. " + whoseTurn);
                 gameController.getClient().sendMsgToServer(hashMap.toString());
             }
-        });
+        }, 1000);
     }
 
     public void getWhoseTurnLAN(){
         new Thread(){
             @Override
             public void run(){
+                Log.d("TEST LAN", "Whose turn LAN.");
                 boolean isExit = false;
                 while(!isExit) {
-                    Log.e("TEST", "get whose turn queue size " + operationQueue.size());
                     try {
                         Bundle bundle = operationQueue.take();
-                        Log.e("TEST Choreographer","Get whose turn lan Bundle " + bundle.toString());
+                        Log.e("TEST Choreographer","Get whose turn LAN Bundle " + bundle.toString());
                         if (bundle != null && "turn".equals(bundle.getString("msgType"))) {
                             final int whoseTurn = Integer.parseInt(bundle.getString("whoseTurn"));
                             Log.e("TEST Choreographer","Get whose turn lan " + whoseTurn);
@@ -191,7 +171,6 @@ public class LANHandler extends Handler {
                             });
                             isExit = true;
                         }
-                        operationQueue.poll();
                     } catch (Exception e) {
                         Log.e("TEST Choreographer", "Fail to get whose turn.");
                         e.printStackTrace();
@@ -203,7 +182,7 @@ public class LANHandler extends Handler {
     }
 
     public void postChangeTypeLAN(final int player, final int targetType){
-        super.post(new Runnable() {
+        super.postDelayed(new Runnable() {
             @Override
             public void run() {
                 HashMap<String, Object> hashMap = new HashMap<>();
@@ -212,33 +191,30 @@ public class LANHandler extends Handler {
                 hashMap.put("targetType", targetType);
                 gameController.getClient().sendMsgToServer(hashMap.toString());
             }
-        });
+        }, 0);
     }
 
     public void getChangeTypeLAN(final int player, final int targetType0){
         new Thread(){
             @Override
             public void run(){
+                Log.d("TEST LAN", "Change type LAN.");
                 boolean isExit = false;
                 while(!isExit) {
                     try {
-                        //Bundle bundle = operationQueue.take();
-                        //if (bundle != null && "charge".equals(bundle.getString("msgType"))) {
-                            int targetTypePre = targetType0;
-                            if(targetTypePre == Value.LOCAL_HUMAN && gameController.getConfigHelper().getLocalPlayer() != player){
-                                targetTypePre = Value.ONLINE_HUMAN;
-                            }
-                            final int targetType = targetTypePre;
-                            LANHandler.super.post(new Runnable() {
-                                @Override
-                                public void run() {
-                                    gameController.setPlayerTypeWhilePlaying(player, targetType);
+                        int targetTypePre = targetType0;
+                        if(targetTypePre == Value.LOCAL_HUMAN && gameController.getConfigHelper().getLocalPlayer() != player){
+                            targetTypePre = Value.ONLINE_HUMAN;
+                        }
+                        final int targetType = targetTypePre;
+                        LANHandler.super.post(new Runnable() {
+                            @Override
+                            public void run() {
+                                gameController.setPlayerTypeWhilePlaying(player, targetType);
 
-                                }
-                            });
-                            isExit = true;
-                        //}
-                        //operationQueue.poll();
+                            }
+                        });
+                        isExit = true;
                     } catch (Exception e) {
                         Log.e("TEST Choreographer", "Fail to get whose turn.");
                         e.printStackTrace();
@@ -257,13 +233,15 @@ public class LANHandler extends Handler {
         }
         try {
             Bundle bundle = msg.getData();
-            Log.e("TEST", "handle message queue size " + operationQueue.size());
+            Log.e("TEST LAN", "handle message queue size before " + operationQueue.size());
             if ("charge".equals(bundle.getString("msgType"))) {
                 int player = Integer.parseInt(bundle.getString("player"));
                 int targetType0 = Integer.parseInt(bundle.getString("targetType"));
                 getChangeTypeLAN(player, targetType0);
             } else {
+                Log.e("TEST LAN", "message add to queue: " + bundle.toString());
                 operationQueue.offer(bundle);
+                Log.e("TEST LAN", "handle message queue size after " + operationQueue.size());
             }
         } catch (Exception e){
             e.printStackTrace();

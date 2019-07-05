@@ -220,6 +220,7 @@ public class LobbyActivity extends AppCompatActivity {
         switch(item.getItemId()) {
             case android.R.id.home:
                 finish();
+                break;
             case R.id.setting:
                 gameController.showToastShort("setting");
                 RelativeLayout settingForm = (RelativeLayout)getLayoutInflater().inflate(R.layout.content_setting, null);

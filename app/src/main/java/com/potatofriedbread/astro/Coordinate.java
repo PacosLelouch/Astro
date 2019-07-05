@@ -30,12 +30,17 @@ public class Coordinate {
         return instance;
     }
 
-    private Coordinate(final GameActivity gameActivity){
+    private Coordinate(GameActivity gameActivity){
         this.gameActivity = gameActivity;
         GameController.getInstance().increaseLoadCount();
+        loadResourceImg();
+        setCoordinate(gameActivity);
+    }
+
+    public void setCoordinate(final GameActivity gameActivity){
+        this.gameActivity = gameActivity;
         final ImageView imageView = gameActivity.getMap();
         final Toolbar toolbar = gameActivity.getToolbar();
-        loadResourceImg();
         imageView.post(new Runnable() {
             @Override
             public void run() {

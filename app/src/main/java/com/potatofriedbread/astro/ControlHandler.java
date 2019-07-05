@@ -1,7 +1,6 @@
 package com.potatofriedbread.astro;
 
 import android.os.Handler;
-import android.os.Message;
 
 public class ControlHandler extends Handler {
 
@@ -16,7 +15,7 @@ public class ControlHandler extends Handler {
         super.postDelayed(new Runnable() {
             @Override
             public void run() {
-                gameController.roll();
+                gameController.rollByLocalPlayer();
             }
         }, 1000);
     }
@@ -45,13 +44,18 @@ public class ControlHandler extends Handler {
             public void run() {
                 gameController.setState(Value.STATE_MOVE_CHESS);
                 if(gameController.getConfigHelper().getPlayerType(gameController.getWhoseTurn()) == Value.LOCAL_HUMAN){
-                    //Do nothing.
+                    if(gameController.getConfigHelper().getGameType() == Value.ONLINE_LAN){
+                        gameController.getLANHandler().getOnlineMoveLAN();
+                    } else if(gameController.getConfigHelper().getGameType() == Value.ONLINE_SERVER){
+                        gameController.getServerHandler().getOnlineMoveServer();
+                    }
                 } else if(gameController.getConfigHelper().getPlayerType(gameController.getWhoseTurn()) == Value.AI){
                     if(gameController.getConfigHelper().getGameType() == Value.LOCAL) {
                         gameController.getControlHandler().getAIMove(rollNum);
                     } else if(gameController.getConfigHelper().getGameType() == Value.ONLINE_LAN){
                         if(gameController.getConfigHelper().isHost()) {
                             gameController.getLANHandler().postAIMoveLAN(rollNum);
+                            gameController.getLANHandler().getOnlineMoveLAN();
                         } else{
                             gameController.getLANHandler().getOnlineMoveLAN();
                         }
@@ -60,14 +64,10 @@ public class ControlHandler extends Handler {
                     }
                 } else if(gameController.getConfigHelper().getPlayerType(gameController.getWhoseTurn()) == Value.ONLINE_HUMAN) {
                     if(gameController.getConfigHelper().getGameType() == Value.ONLINE_LAN){
-                        if(gameController.getConfigHelper().isHost()) {
-                            //Do nothing.
-                        } else {
-                            gameController.getLANHandler().getOnlineMoveLAN();
-                        } // else {}// do nothing
+                        gameController.getLANHandler().getOnlineMoveLAN();
                     } else if(gameController.getConfigHelper().getGameType() == Value.ONLINE_SERVER){
                         gameController.getServerHandler().getOnlineMoveServer();
-                    }
+                    } // else{} // Do nothing.
                 }
             }
         });

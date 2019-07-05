@@ -180,6 +180,7 @@ public class GameController {
             }
             configHelper.changePlayerType(localPlayer, Value.LOCAL_HUMAN);
         }
+        /*
         if(gameType == Value.ONLINE_LAN){
             client.changeHandler(lanHandler);
             if(configHelper.isHost()){
@@ -200,7 +201,7 @@ public class GameController {
                     }
                 });
             }
-        }
+        }*/
         setPlaying(true);
         Log.d("TEST Choreographer", "Game start.");
         initWhoseTurn();
@@ -229,18 +230,24 @@ public class GameController {
                 if (configHelper.getPlayerType(whoseTurn) == Value.ONLINE_HUMAN) {
                     lanHandler.getOnlineRollLAN();
                 } else if (configHelper.getPlayerType(whoseTurn) == Value.AI) {
-                    lanHandler.postOnlineRollLAN();
+                    lanHandler.postAIRollLAN();
                     lanHandler.getOnlineRollLAN();
-                } // else return;
+                } else{
+                    lanHandler.getOnlineRollLAN();
+                }
             } else { // client
                 if (configHelper.getPlayerType(whoseTurn) != Value.LOCAL_HUMAN) { // ONLINE_HUMAN or AI
                     lanHandler.getOnlineRollLAN();
-                } // else return;
+                } else{
+                    lanHandler.getOnlineRollLAN();
+                }
             }
         } else{ // ONLINE_SERVER
             if (configHelper.getPlayerType(whoseTurn) != Value.LOCAL_HUMAN) { // ONLINE_HUMAN or AI
                 serverHandler.getOnlineRollServer();
-            } // else return;
+            } else{
+                serverHandler.getOnlineRollServer();
+            }
         }
     }
 
@@ -271,7 +278,7 @@ public class GameController {
         //turnStart();
     }
 
-    public void roll(){/*
+    public void rollByLocalPlayer(){/*
         if(configHelper.getGameType() != Value.LOCAL && configHelper.getLocalPlayer() != whoseTurn){
             Log.d("TEST Choreographer", "Not your turn.");
             showToastShort("Not your turn.");
@@ -284,7 +291,6 @@ public class GameController {
             Log.d("TEST Choreographer", "rollNum = " + rollNum);
         } else if(configHelper.getGameType() == Value.ONLINE_LAN){
             lanHandler.postOnlineRollLAN();
-            lanHandler.getOnlineRollLAN();
         } else if(configHelper.getGameType() == Value.ONLINE_SERVER){
             //TODO: Not implemented,
         }
@@ -355,17 +361,17 @@ public class GameController {
             if(type == Value.AI && whoseTurn == player) {
                 if(configHelper.isHost()) {
                     if (state == Value.STATE_ROLL) {
-                        lanHandler.postOnlineRollLAN();
-                        lanHandler.getOnlineRollLAN();
+                        lanHandler.postAIRollLAN();
+                        //lanHandler.getOnlineRollLAN(); No need to get more.
                     } else if (state == Value.STATE_MOVE_CHESS) {
                         lanHandler.postAIMoveLAN(rollNum);
-                        lanHandler.getOnlineMoveLAN();
+                        //lanHandler.getOnlineMoveLAN(); No need to get more.
                     }
                 } else {
                     if (state == Value.STATE_ROLL) {
-                        lanHandler.getOnlineRollLAN();
+                        //lanHandler.getOnlineRollLAN(); No need to get more.
                     } else if (state == Value.STATE_MOVE_CHESS) {
-                        lanHandler.getOnlineMoveLAN();
+                        //lanHandler.getOnlineMoveLAN(); No need to get more.
                     }
                 }
             }
@@ -398,7 +404,7 @@ public class GameController {
     public boolean canMove(){
         if(Value.TAKE_OFF_NUM.contains(rollNum)){
             //TextView
-            Log.d("TEST Choreographer", Value.PLAYER_COLOR[whoseTurn] + " takes off.");
+            Log.d("TEST Choreographer", Value.PLAYER_COLOR[whoseTurn] + " can take off.");
             return true;
         }
         for(int i = 0; i < 4; ++i){
@@ -432,7 +438,7 @@ public class GameController {
             int nowPos = chess.getNowPos();
             //go(chess);
             lanHandler.postOnlineMoveLAN(chess.getPlayer(), chess.getChessNum(), nowPos);
-            lanHandler.getOnlineMoveLAN();
+            //lanHandler.getOnlineMoveLAN(); // No need to get more.
         } else if(configHelper.getGameType() == Value.ONLINE_SERVER){
             //TODO: Not implemented.
         }
@@ -553,7 +559,10 @@ public class GameController {
     private void gameOver(){
         try{
             setPlaying(false);
-            audioPlayer.playGameOverBGM();
+            if(audioPlayer.isPlayingGamePlayingBGM()){
+                audioPlayer.pauseGamePlayingBGM();
+                audioPlayer.playGameOverBGM();
+            }
             //Thread.sleep(3000);
             //resetGame();
         } catch(Exception e){
