@@ -30,7 +30,7 @@ public class udpBroadcast extends Thread {
             sender.send(dj);
             sender.close();
         } catch(IOException e) {
-            Log.e("Broadcast", "炸了炸了");
+            Log.e("Broadcast", "炸了");
             e.printStackTrace();
         }
     }

@@ -22,6 +22,7 @@ import org.json.JSONObject;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Set;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
@@ -95,7 +96,7 @@ public class RoomActivity extends AppCompatActivity {
                     }
                     new udpBroadcast(mRoom).start();
                 }
-            }, 0, 2000, TimeUnit.MILLISECONDS);
+            }, 0, 500, TimeUnit.MILLISECONDS);
 
             // 打开tcp服务端
             server = new tcpServer();
@@ -122,12 +123,25 @@ public class RoomActivity extends AppCompatActivity {
     public boolean onOptionsItemSelected(MenuItem item) {
         switch(item.getItemId()){
             case android.R.id.home:
+                if(!isHost)
+                    client.shutdown();
                 finish();
+                break;
             case R.id.setting:
-                // TODO
+                GameController.getInstance().showToastShort("Not allow to change settings in room.");
                 break;
             case R.id.music:
-                // TODO
+                if (GameController.getInstance().getAudioPlayer().isPlayingLobbyBGM()){
+                    //myMediaPlayer.pause();
+                    GameController.getInstance().getAudioPlayer().pauseLobbyBGM();
+                    GameController.getInstance().showToastShort("pause music");
+                }
+                else{/*
+                        myMediaPlayer.start();
+                        myMediaPlayer.setLooping(true);*/
+                    GameController.getInstance().getAudioPlayer().playLobbyBGM();
+                    GameController.getInstance().showToastShort("play music");
+                }
                 break;
         }
         return super.onOptionsItemSelected(item);
@@ -179,15 +193,22 @@ public class RoomActivity extends AppCompatActivity {
         public void handleMessage(Message msg){
             super.handleMessage(msg);
             switch(msg.what){
-              case Value.type_hello:
-                Bundle bundle = msg.getData();
-                String clientIP = bundle.getString("clientIP");
-                String clientName = bundle.getString("clientName");
-                if(tcpServer.findPosition(clientIP, clientName)) // 为新来的玩家找位置
-                    curNum += 1;
-                tcpServer.broadcastPosition(); // 广播新的座位表
-                System.out.println("收到了HELLO报文"+clientIP);
-                break;
+                case Value.type_hello:
+                    Bundle bundle = msg.getData();
+                    String clientIP = bundle.getString("clientIP");
+                    String clientName = bundle.getString("clientName");
+                    if(tcpServer.findPosition(clientIP, clientName)) // 为新来的玩家找位置
+                        curNum += 1;
+                    tcpServer.broadcastPosition(); // 广播新的座位表
+                    break;
+                case Value.msg_shutdown:
+                    Bundle bundle2 = msg.getData();
+                    String clientIP2 = bundle2.getString("clientIP");
+                    if(tcpServer.removeClient(clientIP2)){
+                        curNum -= 1;
+                    }
+                    tcpServer.broadcastPosition(); // 广播新的座位表
+                    break;
             }
         }
     };
@@ -265,6 +286,22 @@ public class RoomActivity extends AppCompatActivity {
         hashMap.put("hostPlayer", hostPlayer);
         Log.d("TEST", hashMap.toString());
         server.sendMessageToAll(hashMap.toString());
+        server.changeHandler(new Handler(){
+            @Override
+            public void handleMessage(Message msg){
+                super.handleMessage(msg);
+                if(msg == null){
+                    return;
+                }
+                Bundle bundle = msg.getData();
+                HashMap<String, Object> hashMap = new HashMap<>();
+                Set<String> keySet = bundle.keySet();
+                for(String key: keySet){
+                    hashMap.put(key, bundle.get(key));
+                }
+                server.sendMessageToAll(hashMap.toString());
+            }
+        });
         //startActivity(intent);
     }
 
@@ -288,6 +325,7 @@ public class RoomActivity extends AppCompatActivity {
         bundle.putIntegerArrayList("aiList", aiList);
         bundle.putStringArray("nameList", nameList);
         intent.putExtras(bundle);
+        client.changeHandler(GameController.getInstance().getLANHandler());
         startActivity(intent);
     }
 }

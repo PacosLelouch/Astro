@@ -26,7 +26,6 @@ public class GameActivity extends AppCompatActivity {
     private ImageView map;
     private Toolbar toolbar;
     private PlayerView[] playerView;
-    private Coordinate coordinate;
     private ImageView roll;
 
     @Override
@@ -78,10 +77,12 @@ public class GameActivity extends AppCompatActivity {
         });
         gameController = GameController.getInstance();
         gameController.setGameActivity(this);
-        //if(Coordinate.getInstance() == null){
+        if(Coordinate.getInstance() == null){
             Coordinate.createInstance(this);
-        //}
-        coordinate = Coordinate.getInstance();
+        } else {
+            GameController.getInstance().increaseLoadCount();
+            Coordinate.getInstance().setCoordinate(this);
+        }
     }
 
     @Override
@@ -96,10 +97,22 @@ public class GameActivity extends AppCompatActivity {
             case android.R.id.home:
                 //也许还能把玩家自动设为托管
                 finish();
+                break;
             case R.id.setting:
-                gameController.showToastShort("setting");
+                gameController.showToastShort("Not allow to change settings while playing.");
                 break;
             case R.id.music:
+                if (gameController.getAudioPlayer().isPlayingGamePlayingBGM()){
+                    //myMediaPlayer.pause();
+                    gameController.getAudioPlayer().pauseGamePlayingBGM();
+                    gameController.showToastShort("pause music");
+                }
+                else{/*
+                        myMediaPlayer.start();
+                        myMediaPlayer.setLooping(true);*/
+                    gameController.getAudioPlayer().playGamePlayingBGM();
+                    gameController.showToastShort("play music");
+                }
                 gameController.showToastShort("music");
                 break;
         }
@@ -112,9 +125,14 @@ public class GameActivity extends AppCompatActivity {
         if(gameController.getState() == Value.ONLINE_LAN){
             gameController.getLANHandler().postChangeTypeLAN(localPlayer, Value.AI);
         }
+        if(gameController.getAudioPlayer().isPlayingGamePlayingBGM()){
+            gameController.getAudioPlayer().pauseGamePlayingBGM();
+        }
+        if(gameController.getAudioPlayer().isPlayingGameOverBGM()){
+            gameController.getAudioPlayer().pauseGameOverBGM();
+        }
         gameController.setPlaying(false);
         gameController.popContext();
-        coordinate = null;
     }
 
     private void getRoomInfo(Bundle bundle){
@@ -140,13 +158,13 @@ public class GameActivity extends AppCompatActivity {
         } else if(gameController.getState() != Value.STATE_ROLL){
             Log.d("TEST Choreographer", "Not the state to roll.");
         } else{
-            gameController.roll();
-            Log.i("TEST Choreographer", "Roll.");
+            gameController.rollByLocalPlayer();
+            Log.i("TEST Choreographer", "Roll button.");
         }
     }
 
     private void setCharge(){
-        Log.i("TEST Choreographer", "Charge.");
+        Log.i("TEST Choreographer", "Charge button.");
         int playerType = gameController.getConfigHelper().getPlayerType(localPlayer);
         if(playerType == Value.AI){
             gameController.discharge(localPlayer);

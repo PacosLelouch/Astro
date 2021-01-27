@@ -98,15 +98,8 @@ public class LobbyActivity extends AppCompatActivity {
 
         new udpReceive(handler_for_udpReceive).start();
 
-        task = new TimerTask() {
-            @Override
-            public void run() {
-                Message message = new Message();
-                message.what = Value.msg_list_clear;
-                handler_for_udpReceive.sendMessage(message);
-            }
-        };
-        timer.schedule(task, 0, 2500);
+        task = new MyTimerTask();
+        timer.schedule(task, 2500, 2500); // NEW
 
         mRoomListAdapter = new SimpleAdapter(this, mData,
                 R.layout.grid_item_list, new String[]{"roomName", "roomState", "roomPeople"},
@@ -143,7 +136,7 @@ public class LobbyActivity extends AppCompatActivity {
                 handler_for_udpReceive.sendMessage(message);
             }
         };
-        timer.schedule(task, 0, 2500);
+        timer.schedule(task, 2500, 2500); // NEW
     }
 
     @Override
@@ -202,7 +195,11 @@ public class LobbyActivity extends AppCompatActivity {
                         room.put("roomPeople", roomCurNum + "/" + roomCapacity);
                         room.put("roomState", Boolean.valueOf(roomState) ? RoomState[1] : RoomState[0]);
                         mData.add(room);
-                    }
+                    }/*
+                    timer.cancel(); // NEW
+                    timer = new Timer(); // NEW
+                    task = new MyTimerTask();
+                    timer.schedule(task, 2500, 2500); // NEW*/
                     mRoomListAdapter.notifyDataSetChanged();
                     break;
             }
@@ -220,6 +217,7 @@ public class LobbyActivity extends AppCompatActivity {
         switch(item.getItemId()) {
             case android.R.id.home:
                 finish();
+                break;
             case R.id.setting:
                 gameController.showToastShort("setting");
                 RelativeLayout settingForm = (RelativeLayout)getLayoutInflater().inflate(R.layout.content_setting, null);
@@ -277,6 +275,18 @@ public class LobbyActivity extends AppCompatActivity {
     @Override
     protected void onDestroy(){
         super.onDestroy();
+        task.cancel();
+        task = null;
+        timer = null;
         gameController.popContext();
+    }
+
+    public class MyTimerTask extends TimerTask {
+        @Override
+        public void run() {
+            Message message = new Message();
+            message.what = Value.msg_list_clear;
+            handler_for_udpReceive.sendMessage(message);
+        }
     }
 }

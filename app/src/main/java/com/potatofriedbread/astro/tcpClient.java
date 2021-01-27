@@ -22,12 +22,32 @@ public class tcpClient {
     private String target_ip;
     private String nickname;
     private Handler mHandler;
+    private Boolean flag = new Boolean("false");
 
     public tcpClient(String host_ip, String nickname, Handler handler){
         target_ip = host_ip;
         this.nickname = nickname;
         mHandler = handler;
     }
+
+    public void shutdown(){
+        flag = false;
+        try{
+            Map<String, Object> msg = new HashMap<>();
+            msg.put("type", Value.msg_shutdown);
+            msg.put("clientIP", NetUtils.getLocalHostIp());
+            sendMsgToServer(msg.toString());
+            while(flag != true){
+                System.out.println("waiting");
+            }
+            socket.close();
+        }
+        catch (Exception e){
+            e.printStackTrace();
+        }
+        System.out.println("客户端主动断开连接");
+    }
+
 
     public void changeHandler(Handler handler){
         mHandler = handler;
@@ -71,7 +91,7 @@ public class tcpClient {
                         }
                     }
                 } catch (IOException e) {
-                    System.out.println("客户端收信bug");
+                    System.out.println("客户端连接中断");
                     e.printStackTrace();
                 }
             }
@@ -83,10 +103,11 @@ public class tcpClient {
             @Override
             public void run() {
                 try{
-                    System.out.println("发信了发信了");
+                    System.out.println("发信了");
                     OutputStream os = socket.getOutputStream();
                     os.write(msg.getBytes("utf-8"));
                     os.flush();
+                    flag = true;
                 }
                 catch(Exception e){
                     System.out.println("客户端发信失败");

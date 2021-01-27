@@ -12,7 +12,7 @@ public class AgentAI {
         return Pair.create(nowPos, chess);
     }
 
-    private static Chess chooseAChess(Chess[][] chessList, int player, int rollNum){
+    public static Chess chooseAChess(Chess[][] chessList, int player, int rollNum){
         if(type == Value.AI_TYPE[0]) {
             return chooseAChessType0(chessList, player, rollNum);
         } else if(type == Value.AI_TYPE[1]){
